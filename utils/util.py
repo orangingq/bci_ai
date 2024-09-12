@@ -2,6 +2,8 @@ import os
 import numpy as np
 import torch
 import random
+from PIL import Image
+from matplotlib import pyplot as plt
 
 def random_seed(seed):
     '''set random seed'''
@@ -12,4 +14,15 @@ def random_seed(seed):
     torch.backends.cudnn.deterministic = True
     torch.use_deterministic_algorithms(True)
     os.environ["PYTHONHASHSEED"] = str(seed)
+    return
+
+
+def show_image(tensor, title=''):
+    '''Show image from tensor'''
+    array = tensor.numpy()
+    array = np.transpose(array, (1, 2, 0))
+    plt.imshow(array)
+    plt.title(title)
+    plt.axis('off')
+    plt.show()
     return

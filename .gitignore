@@ -1,2 +1,8 @@
+
+# dataset
 BCI_dataset/*/*/*.png
 BCI_dataset.zip
+
+# cache
+.vscode
+__pycache__
