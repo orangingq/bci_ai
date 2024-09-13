@@ -56,7 +56,8 @@ def get_model():
     if model_name.lower() == 'vit':
         model = torch_models.vit_b_16(weights=torch_models.ViT_B_16_Weights.IMAGENET1K_V1)
     elif model_name.lower() in ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152']:
-        model = torch.hub.load('pytorch/vision:v0.10.0', model_name.lower(), pretrained=True)
+        model_size = model_name.split('resnet')[-1]
+        model = torch_models.__dict__[f'resnet{model_size}'](weights=torch_models.__dict__[f'ResNet{model_size}_Weights'].IMAGENET1K_V1)
     else:
         raise ValueError(f'Model name {model_name} is not available')
     return model
