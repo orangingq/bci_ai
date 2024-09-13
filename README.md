@@ -4,15 +4,19 @@
 
 ## Download Dataset
 Your downloaded dataset should follow below structure:
-
+```
 |--BCI_dataset  
 	|--HE
-	       |--train
-	       |--test
+        |--train
+            |--xxxxx_train_#.png
+        |--test
+            |--xxxxx_test_#.png
 	|--IHC  
-	       |--train
-	       |--test
-	README.md
+        |--train
+            |--xxxxx_train_#.png
+        |--test
+            |--xxxxx_test_#.png
+```
 
 ## How to Run?
 ```python
