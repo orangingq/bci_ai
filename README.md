@@ -2,6 +2,18 @@
 
 ![framework](framework.png)
 
+## Download Dataset
+Your downloaded dataset should follow below structure:
+
+|--BCI_dataset  
+	|--HE
+	       |--train
+	       |--test
+	|--IHC  
+	       |--train
+	       |--test
+	README.md
+
 ## How to Run?
 ```python
 CUBLAS_WORKSPACE_CONFIG=:16:8 python -m main --{optional arguments}

@@ -6,3 +6,4 @@ BCI_dataset.zip
 # cache
 .vscode
 __pycache__
+*/__pycache__
