@@ -37,7 +37,7 @@ class HEDataset(Dataset):
         self.transform2 = crop_transform(image_size)
         self.directory = os.path.join(data_dir, 'HE', type)
         assert os.path.exists(self.directory), f'{self.directory} does not exist'
-        self.filenames = os.listdir(self.directory) # HE image filenames
+        self.filenames = sorted(os.listdir(self.directory)) # HE image filenames
 
         ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -71,13 +71,14 @@ class BCIDataset(Dataset):
         self.HEdata = []
         self.IHCdata = []
         self.labels = []
+        self.numbers = [] # patient number
         self.type = type # train or test
         self.transform = transform(image_size)
         HE_dir = os.path.join(data_dir, 'HE', type)
         IHC_dir = os.path.join(data_dir, 'IHC', type)
         assert os.path.exists(HE_dir) and os.path.exists(IHC_dir), f'{HE_dir} or {IHC_dir} does not exist'
         assert os.listdir(HE_dir) == os.listdir(IHC_dir)
-        file_list = os.listdir(HE_dir)
+        file_list = sorted(os.listdir(HE_dir))
 
         ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -88,6 +89,7 @@ class BCIDataset(Dataset):
             self.HEdata.append(HE_image)
             self.IHCdata.append(IHC_image)
             self.labels.append(self.HER2_LEVELS[HER2label])
+            self.numbers.append(number)
 
     def __len__(self):
         return len(self.labels)
