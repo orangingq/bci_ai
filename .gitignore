@@ -7,3 +7,6 @@ BCI_dataset.zip
 .vscode
 __pycache__
 */__pycache__
+
+# model weight
+utils/bcss_fold0_ft_model.pth.tar

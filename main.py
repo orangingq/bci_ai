@@ -2,17 +2,19 @@ import time
 import torch
 import utils.args as args
 from utils.args import get_model, get_optimizer
-from train import train, validation
-from BCI_dataset.dataloader import get_bci_dataloaders
 from utils import random_seed, load_checkpoint, save_checkpoint, TimeMetric
+from train import inference, train, validation
+from BCI_dataset.dataloader import get_bci_dataloaders
 
-def main():
+
+def finetune_classification():
     # 1) Dataset Load
     dataloaders = get_bci_dataloaders(args.dataset, batch_size=32, num_workers=4, image_size=args.image_size)
 
     # 2) Model Load, Loss Function, Optimizer
     criterion = torch.nn.CrossEntropyLoss()
     model = get_model()
+    
     optimizer = get_optimizer(model)
 
     # 3) Load Checkpoint
@@ -57,16 +59,32 @@ def main():
             print("\nEarly Stopping ...\n")
             break
             
-            
     # 6) Log after training
     time_elapsed = train_time.elapsed()
     print("Training complete in {:.0f}m {:.0f}s".format(time_elapsed // 60, time_elapsed % 60))
     print("Best Validation Accuracy: {}, Epoch: {}".format(best_acc1, best_epoch1))
 
-    return
+    return dataloaders, model
 
 
 if __name__ == '__main__':
     args.set_args()
     random_seed(args.seed)
-    main()
+    
+    # 1. fine-tuning classification model
+    if args.finetune:
+        print("Fine-tuning classification model")
+        dataloaders, model1 = finetune_classification()
+    else:
+        print("Skip Fine-tuning classification model")
+        dataloaders = get_bci_dataloaders(args.dataset, batch_size=32, num_workers=4, image_size=args.image_size)
+        model1 = load_checkpoint(get_model())[0]
+        model1.cuda()
+    
+    # 2. inference
+    print("Classification Inference")
+    grades = inference(dataloaders['train'], model1)
+    
+    # 5. compute final grade
+    print("Compute Final Grade")
+    final_grades = []

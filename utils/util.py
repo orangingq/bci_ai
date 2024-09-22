@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import os
 import numpy as np
 import torch
@@ -26,3 +27,12 @@ def show_image(tensor, title=''):
     plt.axis('off')
     plt.show()
     return
+
+
+def remove_module_prefix(state_dict):
+    new_state_dict = OrderedDict()
+    for k, v in state_dict.items():
+        if k.startswith('module.'):
+            k = k[len('module.'):]  # 'module.' prefix 제거
+        new_state_dict[k] = v
+    return new_state_dict

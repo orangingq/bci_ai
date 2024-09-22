@@ -1,6 +1,20 @@
+import numpy as np
 import torch
 from utils import Metric, MetricGroup
 import utils.args as args
+
+
+def inference(dataloader, model):
+    model.eval()
+    result = []
+    with torch.no_grad():
+        for batch in dataloader:
+            inputs = batch['HE'].cuda()
+            logits = model(inputs)
+            result.append(logits.argmax(1))
+    result = torch.cat(result, 0).cpu().numpy()
+    return result
+
 
 def validation(dataloader, model, criterion):
     metrics = MetricGroup([Metric('valid_avg_loss', 0.0), Metric('valid_avg_acc1', 0.0), Metric('valid_avg_acc5', 0.0)])

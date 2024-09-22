@@ -1,6 +1,7 @@
 
 import argparse
 import torch
+import torch.nn as nn
 from torchvision import models as torch_models
 
 seed = 42
@@ -10,7 +11,8 @@ model_name = 'ViT'
 optimizer_name = 'Adam'
 learning_rate = 1e-3
 log_freq = 10
-load_dir = None # default : pretrained model 
+finetune = False
+load_dir = None # default : load pretrained model and fine-tune
 save_dir = None # default : not save
 
 def get_args():
@@ -19,14 +21,14 @@ def get_args():
         'seed', 
         'dataset', 'image_size',
         'model_name',
-        'optimizer_name', 'learning_rate', 'log_freq',
+        'optimizer_name', 'learning_rate', 'log_freq', 'finetune',
         'load_dir', 'save_dir'
     ]
     return {var: globals()[var] for var in global_variables}
 
 def set_args():
     '''Set Arguments from Command Line'''
-    global seed, dataset, image_size, model_name, optimizer_name, learning_rate, log_freq, load_dir, save_dir
+    global seed, dataset, image_size, model_name, optimizer_name, learning_rate, log_freq, finetune, load_dir, save_dir
     
     parser = argparse.ArgumentParser()
     # Random seed
@@ -44,6 +46,7 @@ def set_args():
     # load/save arguments
     parser.add_argument('--load_dir', type=str, default=load_dir, help='Load Directory')
     parser.add_argument('--save_dir', type=str, default=save_dir, help='Save Directory')
+    parser.add_argument('--finetune', action='store_true', help='Fine-tune the classification model')
 
     args = parser.parse_args()
     for arg in vars(args):
@@ -51,8 +54,9 @@ def set_args():
     return
 
 
-def get_model():
-    '''Return Model from Model Name (args.model_name)'''
+def get_model()->nn.Module:
+    '''Return Models (Classification model & Segmentation model) from Model Name (args.model_name)'''
+    # Return Classification Model
     if model_name.lower() == 'vit':
         model = torch_models.vit_b_16(weights=torch_models.ViT_B_16_Weights.IMAGENET1K_V1)
     elif model_name.lower() in ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152']:

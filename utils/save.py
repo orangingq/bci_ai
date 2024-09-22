@@ -11,12 +11,13 @@ def save_checkpoint(epoch, model, optimizer):
     print(f"Model saved at {args.save_dir}")
     return 
 
-def load_checkpoint(model, optimizer):
+def load_checkpoint(model, optimizer=None):
     if args.load_dir is None:
         return model, optimizer, 0
     checkpoint = torch.load(args.load_dir, weights_only=True)
     model.load_state_dict(checkpoint['model_state_dict'])
-    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    if optimizer is not None:
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     epoch = checkpoint['epoch']
 
     print(f"Model loaded from {args.load_dir}")
