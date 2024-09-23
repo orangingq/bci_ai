@@ -4,7 +4,7 @@ from segmentation import segmentation
 import utils.args as args
 from utils.args import get_model
 from utils import random_seed, load_checkpoint
-from train import finetune_classification, inference
+from classification import finetune_classification, inference
 from BCI_dataset.dataloader import get_bci_dataloaders
 
 def compute_final_grade(grades, tumor_portion):
