@@ -38,6 +38,20 @@ CUBLAS_WORKSPACE_CONFIG=:16:8 python -m main --{optional arguments}
 
 `CUBLAS_WORKSPACE_CONFIG=:16:8` is added to fix the random seed.
 
+Only valid in CUDA environment. Not tested in CPU only case.
+
+#### Ex. To use pretrained (w/o finetuning) model for classification task
+
+```
+CUBLAS_WORKSPACE_CONFIG=:16:8 python -m main --model_name=ViT
+```
+
+#### Ex. To finetune the classification model with AdamW optimizer
+
+```
+CUBLAS_WORKSPACE_CONFIG=:16:8 python -m main --finetune --optimizer_name=AdamW
+```
+
 ### Options
 
 - `seed :int = 42`
@@ -50,6 +64,7 @@ CUBLAS_WORKSPACE_CONFIG=:16:8 python -m main --{optional arguments}
 - `learning_rate :float = 1e-3`
 - `log_freq :int = 10`
   - log accuracy every `log_freq` batches
+- `finetune :bool = False`
 - `load_dir :str = None`
   - default : load pretrained weight
 - `save_dir :str = None`

@@ -27,7 +27,8 @@ class HEDataset(Dataset):
         '0': 0,
         '1+': 1,
         '2+': 2,
-        '3+': 3
+        '3+': 3,
+        'tissue': 4 # class added : tissue region
     }
     def __init__(self, data_dir='BCI_dataset', type='train', image_size=256):
         self.HEdata = [] # HE image
@@ -71,7 +72,8 @@ class BCIDataset(Dataset):
         '0': 0,
         '1+': 1,
         '2+': 2,
-        '3+': 3
+        '3+': 3, 
+        'tissue': 4 # class added : tissue region
     }
     def __init__(self, data_dir='BCI_dataset', type='train', image_size=224):
         self.HEdata = []
@@ -92,10 +94,11 @@ class BCIDataset(Dataset):
             number, _, HER2label = file_name.rstrip('.png').split('_') # (number)_(train/test)_(HER2level).png
             HE_file_path, IHC_file_path = os.path.join(HE_dir, file_name), os.path.join(IHC_dir, file_name)
             HE_image, IHC_image = Image.open(HE_file_path), Image.open(IHC_file_path) # 1024 x 1024
-            self.HEdata.append(HE_image)
-            self.IHCdata.append(IHC_image)
-            self.labels.append(self.HER2_LEVELS[HER2label])
-            self.numbers.append(number)
+            for theta in [0, 90, 180]: # data augmentation : rotation
+                self.HEdata.append(HE_image.rotate(theta))
+                self.IHCdata.append(IHC_image)
+                self.labels.append(self.HER2_LEVELS[HER2label])
+                self.numbers.append(number)
 
     def __len__(self):
         return len(self.labels)
