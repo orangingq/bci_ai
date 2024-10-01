@@ -2,6 +2,15 @@
 
 ![framework](framework.png)
 
+## Anaconda Environment
+
+```bash
+# 콘다 가상환경 생성 ('bci_ai')
+conda env create --file environment.yml
+# bci_ai 가상환경 활성화
+conda activate bci_ai
+```
+
 ## Download Dataset
 
 Your downloaded dataset should follow below structure:
@@ -42,13 +51,13 @@ Only valid in CUDA environment. Not tested in CPU only case.
 
 #### Ex. To use pretrained (w/o finetuning) model for classification task
 
-```
+```bash
 CUBLAS_WORKSPACE_CONFIG=:16:8 python -m main --model_name=ViT
 ```
 
 #### Ex. To finetune the classification model with AdamW optimizer
 
-```
+```bash
 CUBLAS_WORKSPACE_CONFIG=:16:8 python -m main --finetune --optimizer_name=AdamW
 ```
 
@@ -62,7 +71,7 @@ CUBLAS_WORKSPACE_CONFIG=:16:8 python -m main --finetune --optimizer_name=AdamW
 - `optimizer_name :str = 'Adam'`
   - one of 'Adam' / 'AdamW'
 - `learning_rate :float = 1e-3`
-- `log_freq :int = 10`
+- `log_freq :int = 30`
   - log accuracy every `log_freq` batches
 - `finetune :bool = False`
 - `load_dir :str = None`

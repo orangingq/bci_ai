@@ -90,11 +90,15 @@ class BCIDataset(Dataset):
 
         ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-        for file_name in file_list:
+        for file_name in tqdm(file_list, desc=f'Loading {type} dataset'):
             number, _, HER2label = file_name.rstrip('.png').split('_') # (number)_(train/test)_(HER2level).png
             HE_file_path, IHC_file_path = os.path.join(HE_dir, file_name), os.path.join(IHC_dir, file_name)
             HE_image, IHC_image = Image.open(HE_file_path), Image.open(IHC_file_path) # 1024 x 1024
-            for theta in [0, 90, 180]: # data augmentation : rotation
+            if self.type == 'train':
+                rotation = [0, 90, 180]
+            else:
+                rotation = [0]
+            for theta in rotation: # data augmentation : rotation
                 self.HEdata.append(HE_image.rotate(theta))
                 self.IHCdata.append(IHC_image)
                 self.labels.append(self.HER2_LEVELS[HER2label])
