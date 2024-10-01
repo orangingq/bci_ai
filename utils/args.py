@@ -54,16 +54,22 @@ def set_args():
     return
 
 
-def get_model()->nn.Module:
-    '''Return Models (Classification model & Segmentation model) from Model Name (args.model_name)'''
-    # Return Classification Model
+def get_model(num_classes:int)->nn.Module:
+    '''Return Models (Classification model & Segmentation model) from Model Name (args.model_name)'''    
     if model_name.lower() == 'vit':
         model = torch_models.vit_b_16(weights=torch_models.ViT_B_16_Weights.IMAGENET1K_V1)
+        fc_layer = model.heads.head # last layer
     elif model_name.lower() in ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152']:
         model_size = model_name.split('resnet')[-1]
         model = torch_models.__dict__[f'resnet{model_size}'](weights=torch_models.__dict__[f'ResNet{model_size}_Weights'].IMAGENET1K_V1)
+        fc_layer = model.fc # last layer
     else:
         raise ValueError(f'Model name {model_name} is not available')
+    
+    # Change num_classes of the Last Layer 
+    fc_layer.out_features = num_classes
+    fc_layer.weight.data = fc_layer.weight[:num_classes, :] # HER2 levels
+    fc_layer.bias.data = fc_layer.bias[:num_classes] # HER2 levels
     return model
 
 def get_optimizer(model: torch.nn.Module):

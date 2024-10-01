@@ -20,7 +20,7 @@ def inference(dataloader, model):
 
 
 def validation(dataloader, model, criterion):
-    metrics = MetricGroup([Metric('valid_avg_loss', 0.0), Metric('valid_avg_acc1', 0.0), Metric('valid_avg_acc5', 0.0)])
+    metrics = MetricGroup([Metric('valid_avg_loss', 0.0), Metric('valid_avg_acc', 0.0)])
     model.eval()
     with torch.no_grad():
         for batch in dataloader:
@@ -30,12 +30,9 @@ def validation(dataloader, model, criterion):
             loss = criterion(logits, targets)
 
             # measure accuracy and record loss
-            _, top5_preds = logits.topk(5, 1, True, True)
-            top5_preds = top5_preds.t()
-            top1_preds = top5_preds[0]
+            top1_preds = logits.argmax(1)
             top1_acc = torch.sum(top1_preds == targets)/targets.size(0)
-            top5_acc = torch.sum(torch.sum(top5_preds == targets, dim=0, dtype=torch.bool))/targets.size(0)
-            metrics.step([loss.detach(), top1_acc, top5_acc])
+            metrics.step([loss.detach(), top1_acc])
     return metrics.avg
 
 
@@ -75,10 +72,11 @@ def train(dataloader, model, criterion, optimizer, regularization=None):
 def finetune_classification():
     # 1) Dataset Load
     dataloaders = get_bci_dataloaders(args.dataset, batch_size=32, num_workers=4, image_size=args.image_size)
-
+    num_classes = len(dataloaders['train'].dataset.HER2_LEVELS)
+    
     # 2) Model Load, Loss Function, Optimizer
     criterion = torch.nn.CrossEntropyLoss()
-    model = get_model()
+    model = get_model(num_classes)
     
     optimizer = get_optimizer(model)
 
@@ -88,7 +86,7 @@ def finetune_classification():
     
     # 4) Variables for Training
     start_epoch, num_epochs = last_epoch + 1, 300
-    best_acc1, best_epoch1 = 0.0, 0
+    best_acc, best_epoch = 0.0, 0
     best_acc5 = 0.0
     train_time = TimeMetric("Training Time", time.time())
     epoch_time = TimeMetric("Epoch Training Time", time.time())
@@ -101,17 +99,16 @@ def finetune_classification():
 
         # Train and Validation
         train_avg_loss, train_avg_acc = train(dataloaders['train'], model, criterion, optimizer)
-        val_avg_loss, val_avg_acc1, val_avg_acc5 = validation(dataloaders['val'], model, criterion)
-        best_acc1, best_acc5 = max(best_acc1, val_avg_acc1), max(best_acc5, val_avg_acc5)
-        best_epoch1 = epoch if best_acc1 == val_avg_acc1 else best_epoch1
+        val_avg_loss, val_avg_acc = validation(dataloaders['val'], model, criterion)
+        best_acc = max(best_acc, val_avg_acc)
+        best_epoch = epoch if best_acc == val_avg_acc else best_epoch
 
         # Log
-        print(f"Train Loss: {train_avg_loss:.4f}, Train Acc: {train_avg_acc:.4f}, Val Loss: {val_avg_loss:.4f}, Val Top1 Acc: {val_avg_acc1:.4f}, Val Top5 Acc: {val_avg_acc5:.4f}, Best Acc: {best_acc1:.4f}, Best Epoch: {best_epoch1} \n{epoch_time}")
+        print(f"Train Loss: {train_avg_loss:.4f}, Train Acc: {train_avg_acc:.4f}, Val Loss: {val_avg_loss:.4f}, Val Acc: {val_avg_acc:.4f}, Best Acc: {best_acc:.4f}, Best Epoch: {best_epoch} \n{epoch_time}")
         log = {"train_loss": train_avg_loss, 
-                "train_Top1_accuracy": train_avg_acc, 
+                "train_accuracy": train_avg_acc, 
                 "val_loss": val_avg_loss,
-                "val_Top1_accuracy": val_avg_acc1,
-                "val_Top5_accuracy": val_avg_acc5,
+                "val_accuracy": val_avg_acc,
             }
         
         # save model
@@ -120,13 +117,13 @@ def finetune_classification():
 
         # Early stopping
         stop_threshold = 10
-        if epoch - best_epoch1 > stop_threshold:
+        if epoch - best_epoch > stop_threshold:
             print("\nEarly Stopping ...\n")
             break
             
     # 6) Log after training
     time_elapsed = train_time.elapsed()
     print("Training complete in {:.0f}m {:.0f}s".format(time_elapsed // 60, time_elapsed % 60))
-    print("Best Validation Accuracy: {}, Epoch: {}".format(best_acc1, best_epoch1))
+    print("Best Validation Accuracy: {}, Epoch: {}".format(best_acc, best_epoch))
 
     return dataloaders, model

@@ -45,7 +45,13 @@ class HEDataset(Dataset):
             number, _, _ = file_name.rstrip('.png').split('_') # (number)_(train/test)_(HER2level).png
             HE_file_path = os.path.join(self.directory, file_name)
             HE_image = Image.open(HE_file_path) # 1024 x 1024
+            HE_image_rotated = HE_image.rotate(90)
+            HE_image_rotated2 = HE_image.rotate(180)
             self.HEdata.append(HE_image)
+            self.numbers.append(number)
+            self.HEdata.append(HE_image_rotated)
+            self.numbers.append(number)
+            self.HEdata.append(HE_image_rotated2)
             self.numbers.append(number)
         return
 
