@@ -1,11 +1,11 @@
 import os
 import torch
-from segmentation import segmentation
+from BCSS_segmentation import segmentation
 import utils.args as args
 from utils.args import get_model
 from utils import random_seed, load_checkpoint
 from classification import finetune_classification, inference
-from BCI_dataset.dataloader import get_bci_dataloaders
+from datasets.BCI_dataset.dataloader import get_bci_dataloaders
 
 def compute_final_grade(grades, tumor_portion):
     final_grades = [] #TODO: compute final grade

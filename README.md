@@ -13,21 +13,26 @@ conda activate bci_ai
 
 ## Download Dataset
 
-Your downloaded dataset should follow below structure:
+Your downloaded dataset (ACROBAT, BCI dataset) should follow below structure:
 
 ```
 BCI_AI (root directory)
-    |--BCI_dataset
-        |--HE
-            |--train
-                |--xxxxx_train_#.png
-            |--test
-                |--xxxxx_test_#.png
-        |--IHC
-            |--train
-                |--xxxxx_train_#.png
-            |--test
-                |--xxxxx_test_#.png
+    └── dataset
+        ├── acrobat
+        │   └── train
+        │       └── xxx_{img_type}_train.tif
+        │
+        └── BCI_dataset
+            ├── HE
+            │   ├── train
+            │   │   └── xxxxx_train_#.png
+            │   └── test
+            │       └── xxxxx_test_#.png
+            └── IHC
+                ├── train
+                │   └── xxxxx_train_#.png
+                └── test
+                    └── xxxxx_test_#.png
 ```
 
 ## Download Pretrained segmentation model weight
@@ -36,7 +41,7 @@ BCI_AI (root directory)
 # Download
 wget https://github.com/Dylan-H-Wang/msf-wsi/releases/download/v0.1/bcss_fold0_ft_model.pth.tar
 # move file into 'utils' directory
-mv bcss_fold0_ft_model.pth.tar utils/bcss_fold0_ft_model.pth.tar
+mv bcss_fold0_ft_model.pth.tar BCSS_segmentation/bcss_fold0_ft_model.pth.tar
 ```
 
 ## How to Run?

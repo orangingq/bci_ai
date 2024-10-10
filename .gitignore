@@ -1,13 +1,20 @@
 
 # dataset
-BCI_dataset/*/*/*.png
-BCI_dataset.zip
-BCI_dataset/*/*/*.pth
+datasets/BCI_dataset/*/*/*.png
+datasets/BCI_dataset/BCI_dataset.zip
+datasets/BCI_dataset/*/*/*.pth
+datasets/*.zip
+datasets/acrobat/*/*.tif
+datasets/acrobat/*/roi/*.png
+datasets/acrobat/*.zip
 
 # cache
 .vscode
 __pycache__
 */__pycache__
+*/*/__pycache__
+*/*/*/__pycache__
 
 # model weight
-utils/bcss_fold0_ft_model.pth.tar
+BCSS_segmentation/bcss_fold0_ft_model.pth.tar
+BCSS_segmentation/*.zip

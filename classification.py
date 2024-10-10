@@ -1,6 +1,6 @@
 import time
 import torch
-from BCI_dataset.dataloader import get_bci_dataloaders
+from datasets.BCI_dataset.dataloader import get_bci_dataloaders
 from utils import Metric, TimeMetric, MetricGroup
 import utils.args as args
 from utils.args import get_model, get_optimizer
