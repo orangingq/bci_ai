@@ -2,7 +2,18 @@
 
 ![framework](framework.png)
 
-## Anaconda Environment
+## Prerequisites
+
+### Git Clone
+
+```bash
+# 'bci_ai' git repository 다운로드
+git clone https://github.com/orangingq/bci_ai.git
+# 다운 받은 bci_ai 폴더로 이동
+cd bci_ai
+```
+
+### Anaconda Environment
 
 ```bash
 # 콘다 가상환경 생성 ('bci_ai')
@@ -13,7 +24,11 @@ conda activate bci_ai
 
 ## Download Dataset
 
-Your downloaded dataset (ACROBAT, BCI dataset) should follow below structure:
+- BCSS datset : https://drive.google.com/drive/folders/1zqbdkQF8i5cEmZOGmbdQm-EP8dRYtvss?usp=sharing
+- ACROBAT : https://snd.se/en/catalogue/dataset/2022-190-1
+- BCI dataset : https://github.com/bupt-ai-cz/BCI/blob/main/download_dataset.md
+
+Your downloaded dataset (ACROBAT, BCI dataset, BCSS dataset) should follow below structure:
 
 ```
 BCI_AI (root directory)
@@ -44,7 +59,7 @@ wget https://github.com/Dylan-H-Wang/msf-wsi/releases/download/v0.1/bcss_fold0_f
 mv bcss_fold0_ft_model.pth.tar BCSS_segmentation/bcss_fold0_ft_model.pth.tar
 ```
 
-## How to Run?
+## How to Run? (Patch Classification)
 
 ```python
 CUBLAS_WORKSPACE_CONFIG=:16:8 python -m main --{optional arguments}
@@ -83,3 +98,31 @@ CUBLAS_WORKSPACE_CONFIG=:16:8 python -m main --finetune --optimizer_name=AdamW
   - default : load pretrained weight
 - `save_dir :str = None`
   - default : not save
+
+## How to Run? (WSI Classification using DSMIL)
+
+1. Place ACROBAT WSI files as `datasets\acrobat\[CATEGORY_NAME]\[SLIDE_NAME].tif`.
+2. Crop patches.
+
+```bash
+python deepzoom_tiler.py -m 0 -b 20 -d acrobat
+```
+
+3. Train an embedder.
+
+```bash
+cd dsmil-wsi/simclr
+python run.py --dataset=acrobat --dataset=acrobat--level=high --multiscale=1 --batch_size=512
+```
+
+4. Compute features using the embedder.
+
+```bash
+python dsmil-wsi/compute_feats.py --dataset=acrobat --magnification=high
+```
+
+5. Training.
+
+```bash
+python dsmil-wsi/train_tcga.py --dataset=acrobat
+```

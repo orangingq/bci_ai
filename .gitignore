@@ -4,9 +4,14 @@ datasets/BCI_dataset/*/*/*.png
 datasets/BCI_dataset/BCI_dataset.zip
 datasets/BCI_dataset/*/*/*.pth
 datasets/*.zip
+datasets/acrobat/train/WSI/*
+datasets/acrobat/pyramid
+datasets/acrobat/single
 datasets/acrobat/*/*.tif
-datasets/acrobat/*/roi/*.png
-datasets/acrobat/*.zip
+datasets/acrobat/*/*/*.tif
+datasets/acrobat/*.csv
+datasets/BCSS_dataset/rgbs_colorNormalized/*.png
+datasets/BCSS_dataset/rgbs_colorNormalized/*/*.png
 
 # cache
 .vscode
@@ -14,7 +19,25 @@ __pycache__
 */__pycache__
 */*/__pycache__
 */*/*/__pycache__
+*/*/*/*/__pycache__
+*/*/*/*/*/__pycache__
 
 # model weight
 BCSS_segmentation/bcss_fold0_ft_model.pth.tar
 BCSS_segmentation/*.zip
+
+# dsmil-wsi
+dsmil-wsi/datasets/
+dsmil-wsi/WSI_temp_files/
+dsmil-wsi/simclr/runs
+dsmil-wsi/simclr/all_patches.csv
+dsmil-wsi/test/
+dsmil-wsi/weights/
+dsmil-wsi/embedder/
+dsmil-wsi/test-c16/
+dsmil-wsi/.ipynb_checkpoints
+dsmil-wsi/.ipynb_checkpoints/
+dsmil-wsi/*/.ipynb_checkpoints/*
+dsmil-wsi/*.ipynb
+dsmil-wsi/abmil.py
+dsmil-wsi/temp_train

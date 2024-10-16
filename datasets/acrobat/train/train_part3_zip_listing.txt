@@ -1,0 +1,689 @@
+Archive:  train_part3.zip
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+        0  12-22-2022 08:51   train/
+ 60810932  10-28-2022 16:47   train/301_ER_train.tif
+ 89853340  10-28-2022 16:58   train/301_HER2_train.tif
+ 74477132  10-28-2022 15:54   train/301_HE_train.tif
+ 88927400  10-28-2022 17:25   train/301_KI67_train.tif
+ 61890970  10-28-2022 16:02   train/301_PGR_train.tif
+132634728  10-28-2022 16:23   train/302_ER_train.tif
+131393742  10-28-2022 16:43   train/302_HER2_train.tif
+161467330  10-28-2022 15:49   train/302_HE_train.tif
+151757686  10-28-2022 17:22   train/302_KI67_train.tif
+136517238  10-28-2022 15:57   train/302_PGR_train.tif
+155896060  10-28-2022 16:28   train/303_ER_train.tif
+196892824  10-28-2022 15:48   train/303_HE_train.tif
+132246528  10-28-2022 16:27   train/303_KI67_train.tif
+123768590  10-29-2022 14:35   train/304_ER_train.tif
+111918128  10-29-2022 14:36   train/304_HER2_train.tif
+117122682  10-29-2022 14:29   train/304_HE_train.tif
+125986254  10-29-2022 14:42   train/304_KI67_train.tif
+128931872  10-29-2022 14:54   train/304_PGR_train.tif
+142352314  10-29-2022 14:36   train/305_ER_train.tif
+101097588  10-29-2022 15:11   train/305_HER2_train.tif
+ 94005472  10-29-2022 15:18   train/305_HE_train.tif
+100402478  10-29-2022 15:18   train/305_KI67_train.tif
+ 95366704  10-29-2022 15:36   train/305_PGR_train.tif
+ 94071160  10-28-2022 16:28   train/306_ER_train.tif
+ 55224746  10-28-2022 17:05   train/306_HER2_train.tif
+ 73970970  10-28-2022 17:07   train/306_HE_train.tif
+ 95339616  10-28-2022 17:22   train/306_KI67_train.tif
+ 95479062  10-28-2022 16:43   train/306_PGR_train.tif
+ 97918782  10-29-2022 15:14   train/307_ER_train.tif
+126905396  10-29-2022 14:45   train/307_HE_train.tif
+108828598  10-29-2022 15:41   train/307_PGR_train.tif
+117171344  10-29-2022 15:09   train/308_ER_train.tif
+124168762  10-29-2022 15:00   train/308_HE_train.tif
+118666664  10-29-2022 14:39   train/308_KI67_train.tif
+116904752  10-29-2022 14:51   train/308_PGR_train.tif
+107824216  10-28-2022 17:21   train/309_ER_train.tif
+109472846  10-28-2022 16:43   train/309_HER2_train.tif
+134730444  10-28-2022 16:22   train/309_HE_train.tif
+ 95173702  10-28-2022 17:07   train/309_KI67_train.tif
+ 67473634  10-28-2022 17:10   train/309_PGR_train.tif
+108037460  10-28-2022 16:40   train/310_ER_train.tif
+108726190  10-28-2022 16:59   train/310_HER2_train.tif
+ 77942988  10-28-2022 17:19   train/310_HE_train.tif
+ 49686950  10-28-2022 16:16   train/310_KI67_train.tif
+ 46874906  10-28-2022 17:03   train/310_PGR_train.tif
+115876560  10-28-2022 16:13   train/311_ER_train.tif
+101712568  10-28-2022 15:50   train/311_HER2_train.tif
+114757208  10-28-2022 17:20   train/311_HE_train.tif
+103214446  10-28-2022 17:02   train/311_KI67_train.tif
+ 96317974  10-28-2022 15:54   train/311_PGR_train.tif
+149222394  10-28-2022 16:32   train/312_ER_train.tif
+205832938  10-28-2022 17:17   train/312_HE_train.tif
+154381842  10-28-2022 16:35   train/312_KI67_train.tif
+168942294  10-28-2022 17:15   train/312_PGR_train.tif
+158303716  10-28-2022 16:57   train/313_ER_train.tif
+138932792  10-28-2022 16:40   train/313_HER2_train.tif
+172180956  10-28-2022 16:04   train/313_HE_train.tif
+149900954  10-28-2022 15:39   train/313_KI67_train.tif
+143383438  10-28-2022 16:03   train/313_PGR_train.tif
+199391846  10-28-2022 16:48   train/314_ER_train.tif
+185529240  10-28-2022 17:16   train/314_HE_train.tif
+156429096  10-28-2022 16:45   train/314_KI67_train.tif
+207372038  10-28-2022 17:13   train/314_PGR_train.tif
+ 38850082  10-28-2022 17:09   train/315_ER_train.tif
+ 34684386  10-28-2022 16:28   train/315_HER2_train.tif
+ 61198482  10-28-2022 15:58   train/315_HE_train.tif
+ 57892106  10-28-2022 15:41   train/315_KI67_train.tif
+ 43415808  10-28-2022 15:41   train/315_PGR_train.tif
+152751566  10-28-2022 17:09   train/316_ER_train.tif
+129238382  10-28-2022 16:04   train/316_HE_train.tif
+140599346  10-28-2022 15:37   train/316_KI67_train.tif
+133400744  10-28-2022 17:23   train/316_PGR_train.tif
+129497274  10-28-2022 15:55   train/317_ER_train.tif
+100570654  10-28-2022 16:22   train/317_HE_train.tif
+105235136  10-28-2022 16:31   train/317_KI67_train.tif
+ 94519094  10-28-2022 17:22   train/317_PGR_train.tif
+101187286  10-28-2022 17:09   train/318_ER_train.tif
+ 83292918  10-28-2022 16:08   train/318_HE_train.tif
+ 96501338  10-28-2022 16:18   train/318_KI67_train.tif
+ 94005018  10-28-2022 17:07   train/318_PGR_train.tif
+ 82681182  10-28-2022 15:52   train/319_ER_train.tif
+ 81771672  10-28-2022 15:36   train/319_HE_train.tif
+100995696  10-28-2022 15:41   train/319_KI67_train.tif
+ 74526656  10-28-2022 17:06   train/319_PGR_train.tif
+129736168  10-29-2022 14:51   train/320_ER_train.tif
+135081694  10-29-2022 15:09   train/320_HE_train.tif
+114611412  10-29-2022 15:00   train/320_KI67_train.tif
+137816364  10-29-2022 14:31   train/320_PGR_train.tif
+207461782  10-29-2022 15:00   train/321_ER_train.tif
+189763212  10-29-2022 15:21   train/321_HER2_train.tif
+195034322  10-29-2022 15:37   train/321_HE_train.tif
+221129768  10-29-2022 15:43   train/321_KI67_train.tif
+202681434  10-29-2022 15:01   train/321_PGR_train.tif
+ 71265312  10-29-2022 15:13   train/322_ER_train.tif
+ 70611984  10-29-2022 15:40   train/322_HER2_train.tif
+ 76680494  10-29-2022 15:23   train/322_HE_train.tif
+ 91622720  10-29-2022 14:42   train/322_KI67_train.tif
+ 84065906  10-29-2022 15:09   train/322_PGR_train.tif
+113596408  10-29-2022 15:35   train/323_ER_train.tif
+120141910  10-29-2022 14:41   train/323_HER2_train.tif
+121116908  10-29-2022 14:39   train/323_HE_train.tif
+150990606  10-29-2022 14:43   train/323_KI67_train.tif
+160969228  10-29-2022 14:37   train/323_PGR_train.tif
+140646986  10-28-2022 16:45   train/324_ER_train.tif
+119603264  10-28-2022 15:49   train/324_HER2_train.tif
+163313978  10-28-2022 16:08   train/324_HE_train.tif
+151524398  10-28-2022 16:07   train/324_KI67_train.tif
+145991740  10-28-2022 16:29   train/324_PGR_train.tif
+125800636  10-29-2022 15:15   train/325_ER_train.tif
+127381126  10-29-2022 14:39   train/325_HER2_train.tif
+141313562  10-29-2022 14:58   train/325_HE_train.tif
+118162238  10-29-2022 15:06   train/325_KI67_train.tif
+118816082  10-29-2022 14:58   train/325_PGR_train.tif
+114468536  10-28-2022 16:11   train/326_ER_train.tif
+ 80744718  10-28-2022 17:23   train/326_HE_train.tif
+ 96482794  10-28-2022 16:14   train/326_KI67_train.tif
+123989134  10-28-2022 15:36   train/327_ER_train.tif
+115969732  10-28-2022 15:47   train/327_HER2_train.tif
+161809344  10-28-2022 15:39   train/327_HE_train.tif
+140140626  10-28-2022 16:31   train/327_KI67_train.tif
+120321610  10-28-2022 16:39   train/327_PGR_train.tif
+ 66689098  10-29-2022 15:31   train/328_ER_train.tif
+ 71168166  10-29-2022 14:31   train/328_HER2_train.tif
+ 74473396  10-29-2022 14:54   train/328_HE_train.tif
+ 81031330  10-29-2022 15:08   train/328_KI67_train.tif
+ 67635952  10-29-2022 15:10   train/328_PGR_train.tif
+143173722  10-28-2022 16:19   train/329_ER_train.tif
+138923676  10-28-2022 17:13   train/329_HER2_train.tif
+181465314  10-28-2022 15:49   train/329_HE_train.tif
+162074782  10-28-2022 16:58   train/329_KI67_train.tif
+138476844  10-28-2022 17:23   train/329_PGR_train.tif
+ 95915902  10-28-2022 16:25   train/330_ER_train.tif
+ 50847210  10-28-2022 16:08   train/330_HER2_train.tif
+ 64366264  10-28-2022 16:20   train/330_HE_train.tif
+ 97451452  10-28-2022 17:07   train/330_KI67_train.tif
+108989190  10-28-2022 17:08   train/330_PGR_train.tif
+ 99777564  10-28-2022 17:07   train/331_ER_train.tif
+ 93612884  10-28-2022 17:17   train/331_HER2_train.tif
+134212110  10-28-2022 15:35   train/331_HE_train.tif
+105230910  10-28-2022 16:03   train/331_KI67_train.tif
+106895834  10-28-2022 15:58   train/331_PGR_train.tif
+ 90871482  10-29-2022 14:34   train/332_ER_train.tif
+ 93708422  10-29-2022 14:39   train/332_HER2_train.tif
+100794252  10-29-2022 14:32   train/332_HE_train.tif
+102755552  10-29-2022 15:08   train/332_KI67_train.tif
+ 79609794  10-29-2022 15:36   train/332_PGR_train.tif
+169486446  10-28-2022 15:36   train/333_ER_train.tif
+145639446  10-28-2022 17:11   train/333_HER2_train.tif
+186150988  10-28-2022 16:07   train/333_HE_train.tif
+165318574  10-28-2022 16:35   train/333_KI67_train.tif
+171375856  10-28-2022 16:46   train/333_PGR_train.tif
+139568978  10-29-2022 14:38   train/334_ER_train.tif
+154009908  10-29-2022 14:45   train/334_HER2_train.tif
+153990778  10-29-2022 14:30   train/334_HE_train.tif
+166890728  10-29-2022 15:36   train/334_KI67_train.tif
+131936696  10-29-2022 15:38   train/334_PGR_train.tif
+159904548  10-29-2022 15:35   train/335_ER_train.tif
+155830248  10-29-2022 15:38   train/335_HER2_train.tif
+206146046  10-29-2022 14:56   train/335_HE_train.tif
+177753594  10-29-2022 14:59   train/335_KI67_train.tif
+148043798  10-29-2022 14:48   train/335_PGR_train.tif
+159086624  10-29-2022 14:55   train/336_ER_train.tif
+160299858  10-29-2022 15:35   train/336_HER2_train.tif
+179521018  10-29-2022 14:44   train/336_HE_train.tif
+160296480  10-29-2022 15:02   train/336_KI67_train.tif
+157746056  10-29-2022 14:52   train/336_PGR_train.tif
+178525614  10-29-2022 14:35   train/337_ER_train.tif
+176359438  10-29-2022 15:06   train/337_HER2_train.tif
+186791826  10-29-2022 14:30   train/337_HE_train.tif
+189501104  10-29-2022 15:28   train/337_KI67_train.tif
+188806704  10-29-2022 15:36   train/337_PGR_train.tif
+131263592  10-29-2022 15:31   train/338_ER_train.tif
+ 90812708  10-29-2022 15:13   train/338_HE_train.tif
+136927310  10-29-2022 15:40   train/338_KI67_train.tif
+130553568  10-29-2022 14:55   train/338_PGR_train.tif
+105965822  10-29-2022 14:55   train/339_ER_train.tif
+ 74611974  10-29-2022 15:37   train/339_HER2_train.tif
+ 82317444  10-29-2022 15:27   train/339_HE_train.tif
+ 99031956  10-29-2022 15:17   train/339_KI67_train.tif
+ 82770986  10-29-2022 14:38   train/339_PGR_train.tif
+120718124  10-29-2022 14:52   train/340_ER_train.tif
+115904784  10-29-2022 14:57   train/340_HER2_train.tif
+137974480  10-29-2022 14:57   train/340_HE_train.tif
+128180756  10-29-2022 15:42   train/340_KI67_train.tif
+126018602  10-29-2022 14:30   train/340_PGR_train.tif
+164333542  10-28-2022 17:07   train/341_ER_train.tif
+167332480  10-28-2022 16:16   train/341_HE_train.tif
+122549484  10-28-2022 16:31   train/341_KI67_train.tif
+156841580  10-28-2022 17:19   train/341_PGR_train.tif
+152204246  10-29-2022 14:38   train/342_ER_train.tif
+133955324  10-29-2022 15:46   train/342_HER2_train.tif
+204106442  10-29-2022 15:06   train/342_HE_train.tif
+152506062  10-29-2022 15:00   train/342_KI67_train.tif
+139529562  10-29-2022 14:30   train/342_PGR_train.tif
+156819782  10-28-2022 15:54   train/343_ER_train.tif
+148169932  10-28-2022 16:36   train/343_HER2_train.tif
+158749966  10-28-2022 16:57   train/343_HE_train.tif
+179103340  10-28-2022 17:21   train/343_KI67_train.tif
+157749750  10-28-2022 15:41   train/343_PGR_train.tif
+ 85761420  10-29-2022 15:01   train/344_ER_train.tif
+ 89595568  10-29-2022 15:21   train/344_HER2_train.tif
+ 76137300  10-29-2022 15:16   train/344_HE_train.tif
+111898700  10-29-2022 14:39   train/344_KI67_train.tif
+ 80146200  10-29-2022 15:02   train/344_PGR_train.tif
+145356712  10-29-2022 15:12   train/345_ER_train.tif
+131614512  10-29-2022 15:34   train/345_HER2_train.tif
+231942164  10-29-2022 14:46   train/345_HE_train.tif
+168081212  10-29-2022 14:41   train/345_KI67_train.tif
+155231582  10-29-2022 15:23   train/345_PGR_train.tif
+168045766  10-28-2022 16:23   train/346_ER_train.tif
+136043952  10-28-2022 17:16   train/346_HER2_train.tif
+170583178  10-28-2022 16:01   train/346_HE_train.tif
+151735994  10-28-2022 15:47   train/346_KI67_train.tif
+138862348  10-28-2022 17:25   train/346_PGR_train.tif
+138270180  10-29-2022 14:29   train/347_ER_train.tif
+133089164  10-29-2022 15:36   train/347_HER2_train.tif
+194944026  10-29-2022 14:30   train/347_HE_train.tif
+144820328  10-29-2022 15:15   train/347_KI67_train.tif
+121647938  10-29-2022 14:56   train/347_PGR_train.tif
+108345006  10-29-2022 15:22   train/348_ER_train.tif
+ 65681856  10-29-2022 15:42   train/348_HER2_train.tif
+156317508  10-29-2022 14:58   train/348_HE_train.tif
+102158096  10-29-2022 15:21   train/348_KI67_train.tif
+103774540  10-29-2022 15:40   train/348_PGR_train.tif
+155347412  10-29-2022 15:17   train/349_ER_train.tif
+145800656  10-29-2022 15:14   train/349_HER2_train.tif
+164345540  10-29-2022 14:57   train/349_HE_train.tif
+192309660  10-29-2022 15:20   train/349_KI67_train.tif
+161168420  10-29-2022 15:04   train/349_PGR_train.tif
+155045680  10-29-2022 14:33   train/350_ER_train.tif
+207562828  10-29-2022 14:40   train/350_HE_train.tif
+166422398  10-29-2022 14:46   train/350_KI67_train.tif
+137929060  10-29-2022 14:48   train/350_PGR_train.tif
+105130326  10-29-2022 15:44   train/351_ER_train.tif
+113498106  10-29-2022 14:34   train/351_HE_train.tif
+ 28661912  10-29-2022 15:20   train/351_KI67_train.tif
+112969080  10-29-2022 15:16   train/351_PGR_train.tif
+126077208  10-28-2022 16:03   train/352_ER_train.tif
+126386086  10-28-2022 16:42   train/352_HER2_train.tif
+151333976  10-28-2022 15:51   train/352_HE_train.tif
+150113576  10-28-2022 16:26   train/352_KI67_train.tif
+123689726  10-28-2022 16:07   train/352_PGR_train.tif
+134089236  10-28-2022 15:49   train/353_ER_train.tif
+117378422  10-28-2022 17:22   train/353_HE_train.tif
+101925678  10-28-2022 15:51   train/353_KI67_train.tif
+110375692  10-28-2022 17:12   train/353_PGR_train.tif
+ 99917612  10-29-2022 14:49   train/354_ER_train.tif
+ 92108528  10-29-2022 14:53   train/354_HER2_train.tif
+108412342  10-29-2022 15:04   train/354_HE_train.tif
+106658168  10-29-2022 15:40   train/354_KI67_train.tif
+ 96030578  10-29-2022 14:31   train/354_PGR_train.tif
+115122162  10-29-2022 14:57   train/355_ER_train.tif
+123146746  10-29-2022 15:22   train/355_HER2_train.tif
+149851500  10-29-2022 14:32   train/355_HE_train.tif
+143566170  10-29-2022 14:34   train/355_KI67_train.tif
+ 95318944  10-29-2022 15:24   train/355_PGR_train.tif
+122434524  10-28-2022 16:12   train/356_ER_train.tif
+117881632  10-28-2022 16:50   train/356_HER2_train.tif
+141208168  10-28-2022 16:46   train/356_HE_train.tif
+146002220  10-28-2022 16:31   train/356_KI67_train.tif
+125802078  10-28-2022 16:11   train/356_PGR_train.tif
+150298660  10-28-2022 15:58   train/357_ER_train.tif
+155287888  10-28-2022 17:24   train/357_HE_train.tif
+130239174  10-28-2022 16:15   train/357_KI67_train.tif
+123373284  10-28-2022 17:20   train/357_PGR_train.tif
+122790454  10-28-2022 17:17   train/358_ER_train.tif
+156983704  10-28-2022 16:35   train/358_HE_train.tif
+106029734  10-28-2022 16:48   train/358_KI67_train.tif
+129038334  10-28-2022 17:02   train/358_PGR_train.tif
+210595444  10-29-2022 15:38   train/359_ER_train.tif
+206144070  10-29-2022 14:49   train/359_HER2_train.tif
+243040412  10-29-2022 15:11   train/359_HE_train.tif
+217288420  10-29-2022 14:56   train/359_KI67_train.tif
+202022626  10-29-2022 15:10   train/359_PGR_train.tif
+ 95621168  10-28-2022 16:04   train/360_ER_train.tif
+  9387594  10-28-2022 15:36   train/360_HE_train.tif
+ 97171448  10-28-2022 17:16   train/360_KI67_train.tif
+115757114  10-28-2022 15:39   train/360_PGR_train.tif
+159384074  10-28-2022 15:47   train/361_ER_train.tif
+131854642  10-28-2022 15:37   train/361_HE_train.tif
+147066802  10-28-2022 16:53   train/361_KI67_train.tif
+141045118  10-28-2022 16:10   train/361_PGR_train.tif
+192394022  10-29-2022 15:02   train/362_ER_train.tif
+242937534  10-29-2022 14:48   train/362_HE_train.tif
+179058328  10-29-2022 14:36   train/362_KI67_train.tif
+163820288  10-29-2022 14:49   train/362_PGR_train.tif
+118571388  10-28-2022 16:16   train/363_ER_train.tif
+115991240  10-28-2022 17:02   train/363_HER2_train.tif
+128093660  10-28-2022 17:13   train/363_HE_train.tif
+117146096  10-28-2022 17:03   train/363_KI67_train.tif
+115197592  10-28-2022 15:36   train/363_PGR_train.tif
+177355364  10-28-2022 17:19   train/364_ER_train.tif
+182476886  10-28-2022 16:31   train/364_HE_train.tif
+162381606  10-28-2022 16:21   train/364_KI67_train.tif
+164991586  10-28-2022 15:38   train/364_PGR_train.tif
+215507820  10-29-2022 14:46   train/365_ER_train.tif
+183406888  10-29-2022 15:27   train/365_HER2_train.tif
+249854116  10-29-2022 14:44   train/365_HE_train.tif
+205270228  10-29-2022 15:36   train/365_KI67_train.tif
+230670518  10-29-2022 15:19   train/365_PGR_train.tif
+116978290  10-29-2022 14:43   train/366_ER_train.tif
+150189034  10-29-2022 15:15   train/366_HE_train.tif
+102155596  10-29-2022 15:40   train/366_KI67_train.tif
+117877064  10-29-2022 14:55   train/366_PGR_train.tif
+ 94751844  10-28-2022 15:38   train/367_ER_train.tif
+ 96868348  10-28-2022 16:41   train/367_HER2_train.tif
+115395264  10-28-2022 16:20   train/367_HE_train.tif
+ 94017986  10-28-2022 16:38   train/367_KI67_train.tif
+ 93035194  10-28-2022 17:16   train/367_PGR_train.tif
+155661336  10-28-2022 16:38   train/368_ER_train.tif
+223134518  10-28-2022 15:51   train/368_HE_train.tif
+157439816  10-28-2022 15:44   train/368_KI67_train.tif
+150146374  10-28-2022 16:10   train/368_PGR_train.tif
+151580600  10-28-2022 17:03   train/369_ER_train.tif
+152408062  10-28-2022 15:52   train/369_HE_train.tif
+168587496  10-28-2022 15:41   train/369_KI67_train.tif
+150049442  10-28-2022 16:23   train/369_PGR_train.tif
+191538270  10-28-2022 16:00   train/370_ER_train.tif
+211806340  10-28-2022 16:36   train/370_HE_train.tif
+198359906  10-28-2022 16:06   train/371_ER_train.tif
+195730814  10-28-2022 15:57   train/371_HE_train.tif
+176742368  10-28-2022 15:46   train/371_KI67_train.tif
+153082924  10-28-2022 17:01   train/371_PGR_train.tif
+125646616  10-29-2022 15:33   train/372_ER_train.tif
+125749926  10-29-2022 14:34   train/372_HER2_train.tif
+148413588  10-29-2022 15:20   train/372_HE_train.tif
+148149674  10-29-2022 15:16   train/372_KI67_train.tif
+116564090  10-29-2022 14:47   train/372_PGR_train.tif
+ 92798530  10-28-2022 17:15   train/373_ER_train.tif
+ 73081546  10-28-2022 16:13   train/373_HE_train.tif
+ 93455598  10-28-2022 16:01   train/373_KI67_train.tif
+ 88272816  10-28-2022 16:24   train/373_PGR_train.tif
+ 83127436  10-29-2022 15:03   train/374_ER_train.tif
+ 43914166  10-29-2022 15:29   train/374_HE_train.tif
+ 73322510  10-29-2022 15:16   train/374_KI67_train.tif
+ 90197498  10-29-2022 15:32   train/374_PGR_train.tif
+161591994  10-28-2022 15:53   train/375_ER_train.tif
+146637044  10-28-2022 15:58   train/375_HER2_train.tif
+169849624  10-28-2022 16:02   train/375_HE_train.tif
+168365914  10-28-2022 17:18   train/375_KI67_train.tif
+157501226  10-28-2022 16:33   train/375_PGR_train.tif
+138851710  10-28-2022 17:00   train/376_ER_train.tif
+141199170  10-28-2022 16:11   train/376_HE_train.tif
+116277902  10-28-2022 15:57   train/376_KI67_train.tif
+126628618  10-28-2022 17:25   train/376_PGR_train.tif
+151707380  10-28-2022 17:17   train/377_ER_train.tif
+156663556  10-28-2022 16:05   train/377_HE_train.tif
+131616900  10-28-2022 16:39   train/377_KI67_train.tif
+121905256  10-28-2022 17:21   train/377_PGR_train.tif
+107085600  10-29-2022 14:42   train/378_ER_train.tif
+ 88366960  10-29-2022 15:32   train/378_HER2_train.tif
+ 99405014  10-29-2022 15:24   train/378_HE_train.tif
+ 95374310  10-29-2022 15:01   train/378_KI67_train.tif
+102437618  10-29-2022 15:43   train/378_PGR_train.tif
+103601642  10-29-2022 15:01   train/379_ER_train.tif
+ 84399188  10-29-2022 15:00   train/379_HER2_train.tif
+117861390  10-29-2022 15:42   train/379_HE_train.tif
+123250330  10-29-2022 14:39   train/379_KI67_train.tif
+107339000  10-29-2022 15:24   train/379_PGR_train.tif
+ 98956192  10-28-2022 17:22   train/380_ER_train.tif
+110153936  10-28-2022 16:27   train/380_HE_train.tif
+105831848  10-28-2022 17:00   train/380_KI67_train.tif
+ 33607550  10-28-2022 17:16   train/380_PGR_train.tif
+206512276  10-29-2022 15:44   train/381_ER_train.tif
+185588580  10-29-2022 15:08   train/381_HER2_train.tif
+210199668  10-29-2022 14:35   train/381_HE_train.tif
+209891562  10-29-2022 15:31   train/381_KI67_train.tif
+149935326  10-29-2022 15:46   train/381_PGR_train.tif
+149854558  10-28-2022 16:25   train/382_ER_train.tif
+187511704  10-28-2022 16:44   train/382_HE_train.tif
+143649974  10-28-2022 16:51   train/382_KI67_train.tif
+145143516  10-28-2022 15:35   train/382_PGR_train.tif
+117762666  10-28-2022 16:26   train/383_ER_train.tif
+111099482  10-28-2022 17:16   train/383_HER2_train.tif
+129097934  10-28-2022 15:43   train/383_HE_train.tif
+130667518  10-28-2022 16:51   train/383_KI67_train.tif
+105280538  10-28-2022 16:33   train/383_PGR_train.tif
+ 95075216  10-29-2022 14:42   train/384_ER_train.tif
+ 99016976  10-29-2022 15:12   train/384_HER2_train.tif
+ 73105524  10-29-2022 15:36   train/384_HE_train.tif
+101853860  10-29-2022 14:50   train/384_KI67_train.tif
+ 91239102  10-29-2022 15:16   train/384_PGR_train.tif
+211011486  10-28-2022 16:32   train/385_ER_train.tif
+167933616  10-28-2022 17:23   train/385_HER2_train.tif
+239251980  10-28-2022 16:55   train/385_HE_train.tif
+222359392  10-28-2022 15:44   train/385_KI67_train.tif
+188769930  10-28-2022 15:58   train/385_PGR_train.tif
+ 74264282  10-29-2022 15:35   train/386_ER_train.tif
+ 85443290  10-29-2022 15:19   train/386_HER2_train.tif
+ 77952486  10-29-2022 14:53   train/386_HE_train.tif
+101999658  10-29-2022 15:43   train/386_KI67_train.tif
+ 64176106  10-29-2022 15:42   train/386_PGR_train.tif
+139867358  10-29-2022 15:09   train/387_ER_train.tif
+129369162  10-29-2022 15:00   train/387_HER2_train.tif
+187933922  10-29-2022 14:55   train/387_HE_train.tif
+137128864  10-29-2022 14:44   train/387_KI67_train.tif
+132611734  10-29-2022 15:32   train/387_PGR_train.tif
+157612946  10-29-2022 14:32   train/388_ER_train.tif
+163001016  10-29-2022 15:26   train/388_HE_train.tif
+146978460  10-29-2022 14:57   train/388_KI67_train.tif
+153993994  10-29-2022 15:43   train/388_PGR_train.tif
+125741466  10-28-2022 16:09   train/389_ER_train.tif
+127667172  10-28-2022 17:16   train/389_HER2_train.tif
+184054142  10-28-2022 17:24   train/389_HE_train.tif
+136309102  10-28-2022 15:36   train/389_KI67_train.tif
+147831474  10-28-2022 16:46   train/389_PGR_train.tif
+ 86267828  10-29-2022 14:50   train/390_ER_train.tif
+ 67418226  10-29-2022 15:29   train/390_HER2_train.tif
+116177200  10-29-2022 15:30   train/390_HE_train.tif
+ 83818022  10-29-2022 14:45   train/390_KI67_train.tif
+ 79521280  10-29-2022 14:52   train/390_PGR_train.tif
+174035634  10-29-2022 15:41   train/391_ER_train.tif
+199541190  10-29-2022 14:59   train/391_HE_train.tif
+151030280  10-29-2022 14:32   train/391_PGR_train.tif
+ 92219880  10-29-2022 14:31   train/392_ER_train.tif
+102851290  10-29-2022 15:34   train/392_HER2_train.tif
+113795758  10-29-2022 14:33   train/392_HE_train.tif
+ 99406902  10-29-2022 15:23   train/392_KI67_train.tif
+ 93588192  10-29-2022 14:49   train/392_PGR_train.tif
+102879258  10-29-2022 14:37   train/393_HER2_train.tif
+143813394  10-29-2022 15:01   train/393_HE_train.tif
+135986564  10-29-2022 15:24   train/393_KI67_train.tif
+112457036  10-29-2022 15:15   train/393_PGR_train.tif
+193079172  10-29-2022 14:46   train/394_ER_train.tif
+228667534  10-29-2022 14:47   train/394_HE_train.tif
+177781954  10-29-2022 14:44   train/394_KI67_train.tif
+153168592  10-29-2022 15:13   train/394_PGR_train.tif
+147630138  10-29-2022 15:12   train/395_ER_train.tif
+159642028  10-29-2022 15:03   train/395_HE_train.tif
+180812438  10-29-2022 15:46   train/395_KI67_train.tif
+148863350  10-29-2022 14:47   train/395_PGR_train.tif
+122747088  10-29-2022 15:37   train/396_ER_train.tif
+133450538  10-29-2022 15:32   train/396_HE_train.tif
+138951522  10-29-2022 15:30   train/396_KI67_train.tif
+138297514  10-29-2022 15:31   train/396_PGR_train.tif
+ 99719284  10-28-2022 15:50   train/397_ER_train.tif
+ 95528138  10-28-2022 16:34   train/397_HER2_train.tif
+125369714  10-28-2022 17:05   train/397_HE_train.tif
+128450254  10-28-2022 16:18   train/397_KI67_train.tif
+107662312  10-28-2022 16:09   train/397_PGR_train.tif
+154110390  10-28-2022 17:03   train/398_ER_train.tif
+136503388  10-28-2022 17:04   train/398_HE_train.tif
+144680392  10-28-2022 16:44   train/398_KI67_train.tif
+123265072  10-28-2022 15:46   train/398_PGR_train.tif
+ 60331238  10-28-2022 16:06   train/399_ER_train.tif
+ 69974948  10-28-2022 16:33   train/399_HER2_train.tif
+ 54192842  10-28-2022 16:44   train/399_HE_train.tif
+ 56617960  10-28-2022 15:48   train/399_KI67_train.tif
+ 72193102  10-28-2022 16:16   train/399_PGR_train.tif
+124890708  10-28-2022 17:26   train/400_ER_train.tif
+104244168  10-28-2022 16:28   train/400_HER2_train.tif
+134246342  10-28-2022 15:44   train/400_HE_train.tif
+139280702  10-28-2022 15:59   train/400_KI67_train.tif
+118656080  10-28-2022 17:09   train/400_PGR_train.tif
+122975210  10-28-2022 16:36   train/401_HER2_train.tif
+153384866  10-28-2022 17:20   train/401_HE_train.tif
+131829294  10-29-2022 14:57   train/402_ER_train.tif
+ 90664544  10-29-2022 14:47   train/402_HER2_train.tif
+142427682  10-29-2022 15:25   train/402_HE_train.tif
+108440302  10-29-2022 15:44   train/402_KI67_train.tif
+118994594  10-29-2022 15:46   train/402_PGR_train.tif
+ 88238494  10-29-2022 15:05   train/403_ER_train.tif
+ 79659098  10-29-2022 15:17   train/403_HER2_train.tif
+111477656  10-29-2022 15:34   train/403_HE_train.tif
+ 77124248  10-29-2022 15:19   train/403_KI67_train.tif
+ 88389736  10-29-2022 15:29   train/403_PGR_train.tif
+184315116  10-29-2022 15:26   train/404_ER_train.tif
+174780674  10-29-2022 15:28   train/404_HER2_train.tif
+239812702  10-29-2022 15:28   train/404_HE_train.tif
+158567458  10-29-2022 14:54   train/404_KI67_train.tif
+197868978  10-29-2022 14:33   train/404_PGR_train.tif
+152082196  10-28-2022 16:25   train/405_ER_train.tif
+127750628  10-28-2022 16:35   train/405_HE_train.tif
+134773042  10-28-2022 16:42   train/405_KI67_train.tif
+127146548  10-28-2022 15:45   train/405_PGR_train.tif
+168930692  10-29-2022 15:08   train/406_ER_train.tif
+155377218  10-29-2022 15:33   train/406_HER2_train.tif
+197073332  10-29-2022 15:11   train/406_HE_train.tif
+162970562  10-29-2022 14:57   train/406_KI67_train.tif
+180191342  10-29-2022 14:50   train/406_PGR_train.tif
+114843216  10-28-2022 16:41   train/407_ER_train.tif
+162160510  10-28-2022 15:43   train/407_HER2_train.tif
+166277754  10-28-2022 17:08   train/407_HE_train.tif
+117289048  10-28-2022 15:37   train/407_KI67_train.tif
+ 92157318  10-28-2022 16:53   train/407_PGR_train.tif
+111898176  10-29-2022 14:46   train/408_ER_train.tif
+ 98216418  10-29-2022 14:46   train/408_HE_train.tif
+101841566  10-29-2022 15:44   train/408_KI67_train.tif
+ 47232912  10-29-2022 14:57   train/408_PGR_train.tif
+152115712  10-29-2022 15:14   train/409_ER_train.tif
+179414340  10-29-2022 15:40   train/409_HE_train.tif
+141307390  10-29-2022 14:30   train/409_KI67_train.tif
+150316224  10-29-2022 14:46   train/409_PGR_train.tif
+162445470  10-28-2022 15:37   train/410_ER_train.tif
+133605724  10-28-2022 15:36   train/410_HE_train.tif
+132331140  10-28-2022 16:52   train/410_KI67_train.tif
+154879318  10-28-2022 16:24   train/410_PGR_train.tif
+132774116  10-28-2022 17:25   train/411_ER_train.tif
+103513216  10-28-2022 15:37   train/411_HER2_train.tif
+124522066  10-28-2022 17:19   train/411_HE_train.tif
+147877058  10-28-2022 16:47   train/411_KI67_train.tif
+109927076  10-28-2022 17:11   train/411_PGR_train.tif
+138267610  10-29-2022 14:59   train/412_ER_train.tif
+137941884  10-29-2022 15:05   train/412_HER2_train.tif
+126719766  10-29-2022 15:04   train/412_HE_train.tif
+137844986  10-29-2022 14:41   train/412_KI67_train.tif
+134734740  10-29-2022 15:25   train/412_PGR_train.tif
+168860606  10-28-2022 16:07   train/413_ER_train.tif
+159744950  10-28-2022 16:41   train/413_HER2_train.tif
+162263048  10-28-2022 16:53   train/413_HE_train.tif
+169759552  10-28-2022 16:46   train/413_KI67_train.tif
+173119182  10-28-2022 16:00   train/413_PGR_train.tif
+123476644  10-29-2022 15:29   train/414_ER_train.tif
+127194840  10-29-2022 15:04   train/414_HER2_train.tif
+145930892  10-29-2022 14:31   train/414_HE_train.tif
+130182366  10-29-2022 15:05   train/414_KI67_train.tif
+113341530  10-29-2022 14:47   train/414_PGR_train.tif
+123661244  10-28-2022 15:37   train/415_ER_train.tif
+ 86134606  10-28-2022 17:17   train/415_HER2_train.tif
+139271484  10-28-2022 16:38   train/415_HE_train.tif
+109824624  10-28-2022 15:48   train/415_KI67_train.tif
+ 90632076  10-28-2022 15:42   train/415_PGR_train.tif
+145947796  10-29-2022 14:55   train/416_ER_train.tif
+107838828  10-29-2022 15:10   train/416_HE_train.tif
+103183320  10-29-2022 14:43   train/416_KI67_train.tif
+142596976  10-29-2022 14:38   train/416_PGR_train.tif
+145762502  10-29-2022 15:08   train/417_ER_train.tif
+121952322  10-29-2022 14:49   train/417_HE_train.tif
+149632312  10-29-2022 15:16   train/417_KI67_train.tif
+150390212  10-29-2022 15:37   train/417_PGR_train.tif
+ 88321586  10-29-2022 14:38   train/418_ER_train.tif
+ 81757218  10-29-2022 14:59   train/418_HER2_train.tif
+ 93781252  10-29-2022 15:16   train/418_HE_train.tif
+104571402  10-29-2022 15:20   train/418_KI67_train.tif
+ 70803314  10-29-2022 15:35   train/418_PGR_train.tif
+108753130  10-28-2022 16:18   train/419_ER_train.tif
+118727420  10-28-2022 16:46   train/419_HER2_train.tif
+109889740  10-28-2022 16:47   train/419_HE_train.tif
+131218034  10-28-2022 16:00   train/419_KI67_train.tif
+114792492  10-28-2022 17:09   train/419_PGR_train.tif
+126787940  10-28-2022 17:21   train/420_ER_train.tif
+114848034  10-28-2022 16:58   train/420_HE_train.tif
+112239528  10-28-2022 16:43   train/420_KI67_train.tif
+125225966  10-28-2022 17:21   train/420_PGR_train.tif
+113996290  10-29-2022 14:53   train/421_ER_train.tif
+ 98907952  10-29-2022 15:37   train/421_HER2_train.tif
+103621782  10-29-2022 15:34   train/421_HE_train.tif
+124501058  10-29-2022 14:59   train/421_KI67_train.tif
+149140450  10-29-2022 15:09   train/421_PGR_train.tif
+ 87390292  10-29-2022 14:49   train/422_ER_train.tif
+102876912  10-29-2022 15:02   train/422_HER2_train.tif
+ 87891960  10-29-2022 14:46   train/422_HE_train.tif
+ 85588856  10-29-2022 14:50   train/422_KI67_train.tif
+ 83517698  10-29-2022 14:47   train/422_PGR_train.tif
+137655790  10-28-2022 16:15   train/423_ER_train.tif
+ 82216928  10-28-2022 15:43   train/423_HER2_train.tif
+ 95661062  10-28-2022 16:48   train/423_HE_train.tif
+ 90347628  10-28-2022 17:04   train/423_KI67_train.tif
+ 66185378  10-28-2022 16:22   train/423_PGR_train.tif
+135525864  10-28-2022 16:13   train/424_ER_train.tif
+133859864  10-28-2022 16:46   train/424_HER2_train.tif
+163087160  10-28-2022 17:03   train/424_HE_train.tif
+150994362  10-28-2022 17:23   train/424_KI67_train.tif
+128767574  10-28-2022 15:58   train/424_PGR_train.tif
+137990726  10-28-2022 16:19   train/425_ER_train.tif
+ 85526486  10-28-2022 15:58   train/425_HER2_train.tif
+101351802  10-28-2022 16:52   train/425_HE_train.tif
+ 73384322  10-28-2022 15:37   train/425_KI67_train.tif
+124861730  10-28-2022 16:09   train/425_PGR_train.tif
+145349358  10-28-2022 16:54   train/426_ER_train.tif
+143925030  10-28-2022 16:39   train/426_HER2_train.tif
+195876922  10-28-2022 16:49   train/426_HE_train.tif
+139821132  10-28-2022 15:54   train/426_KI67_train.tif
+133836382  10-28-2022 16:13   train/426_PGR_train.tif
+ 62273394  10-28-2022 16:22   train/427_ER_train.tif
+ 80797602  10-28-2022 16:31   train/427_HER2_train.tif
+ 99944798  10-28-2022 16:35   train/427_HE_train.tif
+ 94015330  10-28-2022 15:42   train/427_KI67_train.tif
+118150574  10-28-2022 16:18   train/427_PGR_train.tif
+117977866  10-29-2022 15:42   train/428_ER_train.tif
+126096524  10-29-2022 14:42   train/428_HE_train.tif
+111694272  10-29-2022 14:57   train/428_KI67_train.tif
+105620990  10-29-2022 15:19   train/428_PGR_train.tif
+127656246  10-28-2022 16:25   train/429_ER_train.tif
+133199930  10-28-2022 16:47   train/429_HER2_train.tif
+163685946  10-28-2022 15:56   train/429_HE_train.tif
+164187600  10-28-2022 16:22   train/429_KI67_train.tif
+148600874  10-28-2022 17:19   train/429_PGR_train.tif
+119441662  10-28-2022 15:55   train/430_ER_train.tif
+ 92181748  10-28-2022 16:55   train/430_HE_train.tif
+139054770  10-28-2022 16:08   train/430_KI67_train.tif
+129175076  10-28-2022 15:59   train/430_PGR_train.tif
+121725116  10-29-2022 15:36   train/431_ER_train.tif
+133502984  10-29-2022 14:54   train/431_HE_train.tif
+104734546  10-29-2022 14:49   train/431_KI67_train.tif
+115179540  10-29-2022 15:06   train/431_PGR_train.tif
+180008612  10-29-2022 15:02   train/432_ER_train.tif
+145259546  10-29-2022 15:47   train/432_HER2_train.tif
+217723564  10-29-2022 14:39   train/432_HE_train.tif
+159368334  10-29-2022 15:15   train/432_KI67_train.tif
+150070344  10-29-2022 15:13   train/432_PGR_train.tif
+ 62141076  10-29-2022 15:37   train/433_ER_train.tif
+ 65272130  10-29-2022 14:34   train/433_HER2_train.tif
+ 73850120  10-29-2022 15:19   train/433_HE_train.tif
+ 79845060  10-29-2022 15:19   train/433_KI67_train.tif
+ 63438362  10-29-2022 15:32   train/433_PGR_train.tif
+179140274  10-28-2022 15:35   train/434_ER_train.tif
+258060728  10-28-2022 15:45   train/434_HE_train.tif
+161988154  10-28-2022 15:49   train/434_KI67_train.tif
+158550732  10-28-2022 17:07   train/434_PGR_train.tif
+130890198  10-29-2022 14:37   train/435_ER_train.tif
+123384884  10-29-2022 15:16   train/435_HER2_train.tif
+178001698  10-29-2022 15:19   train/435_HE_train.tif
+146884920  10-29-2022 14:48   train/435_KI67_train.tif
+128930220  10-29-2022 15:05   train/435_PGR_train.tif
+110656346  10-28-2022 16:55   train/436_ER_train.tif
+ 82810014  10-28-2022 16:50   train/436_HER2_train.tif
+130305334  10-28-2022 17:26   train/436_HE_train.tif
+ 96141334  10-28-2022 16:32   train/436_KI67_train.tif
+ 94895990  10-28-2022 15:57   train/436_PGR_train.tif
+123703938  10-29-2022 15:39   train/437_ER_train.tif
+144796634  10-29-2022 14:36   train/437_HE_train.tif
+116715566  10-29-2022 15:15   train/437_KI67_train.tif
+117533480  10-29-2022 15:30   train/437_PGR_train.tif
+ 75029180  10-29-2022 14:40   train/438_ER_train.tif
+ 66677232  10-29-2022 15:35   train/438_HER2_train.tif
+ 72404980  10-29-2022 14:50   train/438_HE_train.tif
+ 72376272  10-29-2022 14:41   train/438_KI67_train.tif
+ 75165094  10-29-2022 15:01   train/438_PGR_train.tif
+146993922  10-28-2022 15:44   train/439_ER_train.tif
+148769214  10-28-2022 16:05   train/439_HER2_train.tif
+240106732  10-28-2022 16:55   train/439_HE_train.tif
+193413930  10-28-2022 16:50   train/439_KI67_train.tif
+136365348  10-28-2022 16:07   train/439_PGR_train.tif
+158769712  10-28-2022 17:11   train/440_ER_train.tif
+ 99445636  10-28-2022 16:09   train/440_HE_train.tif
+ 69213274  10-28-2022 16:03   train/440_KI67_train.tif
+ 34361852  10-28-2022 16:48   train/440_PGR_train.tif
+ 67409686  10-28-2022 15:35   train/441_ER_train.tif
+ 64204582  10-28-2022 16:30   train/441_HER2_train.tif
+ 52249364  10-28-2022 16:38   train/441_HE_train.tif
+ 89133408  10-28-2022 16:37   train/441_KI67_train.tif
+ 71942598  10-28-2022 15:37   train/441_PGR_train.tif
+112534004  10-28-2022 16:10   train/442_ER_train.tif
+103949900  10-28-2022 17:10   train/442_HE_train.tif
+112922962  10-28-2022 16:30   train/442_KI67_train.tif
+113017492  10-28-2022 17:08   train/442_PGR_train.tif
+117234890  10-29-2022 15:04   train/443_ER_train.tif
+144316766  10-29-2022 14:36   train/443_HER2_train.tif
+136548222  10-29-2022 14:49   train/443_HE_train.tif
+166125952  10-29-2022 15:15   train/443_KI67_train.tif
+155271416  10-29-2022 14:42   train/443_PGR_train.tif
+173329608  10-29-2022 14:41   train/444_ER_train.tif
+185089158  10-29-2022 14:47   train/444_HE_train.tif
+137596412  10-29-2022 15:10   train/444_KI67_train.tif
+145631050  10-29-2022 15:30   train/444_PGR_train.tif
+101233758  10-29-2022 14:35   train/445_ER_train.tif
+ 88596908  10-29-2022 14:51   train/445_HER2_train.tif
+123124634  10-29-2022 15:34   train/445_HE_train.tif
+ 94639866  10-29-2022 14:29   train/445_KI67_train.tif
+107204774  10-29-2022 14:32   train/445_PGR_train.tif
+162106458  10-29-2022 14:43   train/446_ER_train.tif
+177579770  10-29-2022 15:39   train/446_HE_train.tif
+141621012  10-29-2022 14:58   train/446_KI67_train.tif
+147300594  10-29-2022 15:37   train/446_PGR_train.tif
+113961618  10-28-2022 17:06   train/447_ER_train.tif
+ 94742296  10-28-2022 15:37   train/447_HE_train.tif
+105230834  10-28-2022 16:12   train/447_KI67_train.tif
+103984522  10-28-2022 17:05   train/447_PGR_train.tif
+110697312  10-29-2022 15:39   train/448_ER_train.tif
+122061636  10-29-2022 14:52   train/448_HER2_train.tif
+115900710  10-29-2022 15:44   train/448_HE_train.tif
+117401316  10-29-2022 15:11   train/448_KI67_train.tif
+114003494  10-29-2022 15:10   train/448_PGR_train.tif
+ 45784756  10-29-2022 14:36   train/449_ER_train.tif
+ 68455442  10-29-2022 15:36   train/449_HE_train.tif
+ 37901218  10-29-2022 15:15   train/449_KI67_train.tif
+ 34815410  10-29-2022 14:32   train/449_PGR_train.tif
+113065256  10-28-2022 17:15   train/450_ER_train.tif
+113094404  10-28-2022 17:14   train/450_HER2_train.tif
+139089326  10-28-2022 17:23   train/450_HE_train.tif
+137390488  10-28-2022 16:43   train/450_KI67_train.tif
+111362846  10-28-2022 17:21   train/450_PGR_train.tif
+---------                     -------
+87471712896                     684 files
