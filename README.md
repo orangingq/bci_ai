@@ -62,20 +62,21 @@ mv bcss_fold0_ft_model.pth.tar BCSS_segmentation/bcss_fold0_ft_model.pth.tar
 ## How to Run? (Patch Classification)
 
 ```python
-CUBLAS_WORKSPACE_CONFIG=:16:8 python -m main --{optional arguments}
+# for CUDA
+CUBLAS_WORKSPACE_CONFIG=:16:8 python -m main {--optional arguments}
+# for CPU-only
+python -m main --{optional arguments}
 ```
 
 `CUBLAS_WORKSPACE_CONFIG=:16:8` is added to fix the random seed.
 
-Only valid in CUDA environment. Not tested in CPU only case.
-
-#### Ex. To use pretrained (w/o finetuning) model for classification task
+#### Ex. To use pretrained (w/o finetuning) model for classification task in CPU
 
 ```bash
-CUBLAS_WORKSPACE_CONFIG=:16:8 python -m main --model_name=ViT
+python -m main --model_name=ViT
 ```
 
-#### Ex. To finetune the classification model with AdamW optimizer
+#### Ex. To finetune the classification model with AdamW optimizer with GPUs
 
 ```bash
 CUBLAS_WORKSPACE_CONFIG=:16:8 python -m main --finetune --optimizer_name=AdamW

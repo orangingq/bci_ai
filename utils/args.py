@@ -14,6 +14,7 @@ log_freq = 30
 finetune = False
 load_dir = None # default : load pretrained model and fine-tune
 save_dir = None # default : not save
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def get_args():
     '''Get Global Variables as Dictionary'''
@@ -22,13 +23,13 @@ def get_args():
         'dataset', 'image_size',
         'model_name',
         'optimizer_name', 'learning_rate', 'log_freq', 'finetune',
-        'load_dir', 'save_dir'
+        'load_dir', 'save_dir', 'device'
     ]
     return {var: globals()[var] for var in global_variables}
 
 def set_args():
     '''Set Arguments from Command Line'''
-    global seed, dataset, image_size, model_name, optimizer_name, learning_rate, log_freq, finetune, load_dir, save_dir
+    global seed, dataset, image_size, model_name, optimizer_name, learning_rate, log_freq, finetune, load_dir, save_dir, device
     
     parser = argparse.ArgumentParser()
     # Random seed
@@ -51,6 +52,7 @@ def set_args():
     args = parser.parse_args()
     for arg in vars(args):
         globals()[arg] = getattr(args, arg)# update global variables
+    print(f'Arguments are set as follows: {get_args()}')
     return
 
 

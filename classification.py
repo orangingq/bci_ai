@@ -12,7 +12,7 @@ def inference(dataloader, model):
     result = []
     with torch.no_grad():
         for batch in dataloader:
-            inputs = batch['HE'].cuda()
+            inputs = batch['HE'].to(args.device)
             logits = model(inputs)
             result.append(logits.argmax(1))
     result = torch.cat(result, 0).cpu().numpy()
@@ -24,8 +24,8 @@ def validation(dataloader, model, criterion):
     model.eval()
     with torch.no_grad():
         for batch in dataloader:
-            inputs = batch['HE'].cuda()
-            targets = batch['label'].cuda()
+            inputs = batch['HE'].to(args.device)
+            targets = batch['label'].to(args.device)
             logits = model(inputs)
             loss = criterion(logits, targets)
 
@@ -43,8 +43,8 @@ def train(dataloader, model, criterion, optimizer, regularization=None):
     model.train()
     len_epoch = len(dataloader)
     for step, batch in enumerate(dataloader):
-        inputs = batch['HE'].cuda()
-        targets = batch['label'].cuda()
+        inputs = batch['HE'].to(args.device)
+        targets = batch['label'].to(args.device)
         logits = model(inputs)
         loss = criterion(logits, targets)
         if regularization is not None:
@@ -82,7 +82,7 @@ def finetune_classification():
 
     # 3) Load Checkpoint
     model, optimizer, last_epoch = load_checkpoint(model, optimizer)
-    model.cuda()
+    model.to(args.device)
     
     # 4) Variables for Training
     start_epoch, num_epochs = last_epoch + 1, 300

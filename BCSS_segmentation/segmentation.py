@@ -26,7 +26,7 @@ def predict_segmentation(dataloader, model):
     result = []
     with torch.no_grad():
         for batch in tqdm(dataloader, total=len(dataloader)):
-            image1, image2 = batch['HE'].cuda(), batch['HE2'].cuda()
+            image1, image2 = batch['HE'].to(args.device), batch['HE2'].to(args.device)
             preds_context, preds_target = model(image1, image2)
             pred_mask = torch.argmax(preds_target, dim=1)  # 클래스별로 가장 높은 확률을 가진 픽셀
             pred_mask = pred_mask == 1 # 1번 클래스('tumor')가 가장 높은 확률을 가진 픽셀만 True (binary mask)
@@ -73,15 +73,15 @@ def segmentation(
 ):
     # 1) Dataset Load
     print("Dataset Load")
-    dataloaders = get_bci_dataloaders('BCI_dataset', type='segmentation', batch_size=32, num_workers=4, image_size=256)
+    dataloaders = get_bci_dataloaders('datasets/BCI_dataset', type='segmentation', batch_size=32, num_workers=4, image_size=256)
 
     # 2) segmentation model load (HookNet)
     print("Load Segmentation Model")
     model = HookNet(encoder_name="resnet18", encoder_weights="imagenet", classes=len(BCSS_CLASSES) + 1)
-    checkpoint = torch.load('BCSS_segmentation/bcss_fold0_ft_model.pth.tar', map_location="cuda")
+    checkpoint = torch.load('BCSS_segmentation/bcss_fold0_ft_model.pth.tar', map_location=args.device.type)
     state_dict = remove_module_prefix(checkpoint["state_dict"])
     model.load_state_dict(state_dict)
-    model.cuda()
+    model.to(args.device)
     
     # 3) segmentation mask 생성
     print("Segmentation Inference")
@@ -93,7 +93,7 @@ def segmentation(
     if visualize:
         print("Visualize Segmentation")
         from_dir = dataloaders[data_type].dataset.directory
-        to_dir = os.path.join('BCI_dataset', 'segmented_result', data_type)
+        to_dir = os.path.join('datasets/BCI_dataset', 'segmented_result', data_type)
         assert os.path.exists(from_dir), f'{from_dir} does not exist'
         os.makedirs(to_dir, exist_ok=True)
         for i in range(len(filenames)):
@@ -104,7 +104,7 @@ def segmentation(
             print(f"Save: {filename} -> {savefilename}")
         
     # 6) segmentation mask 저장    
-    save_to = os.path.join('BCI_dataset', 'segmented_result', data_type, 'masks.pth')
+    save_to = os.path.join('datasets/BCI_dataset', 'segmented_result', data_type, 'masks.pth')
     torch.save(dict([(f'{numbers[i]}', masks[i]) for i in range(len(numbers))]), save_to)
     print(f"Save: {save_to}")
     return 
