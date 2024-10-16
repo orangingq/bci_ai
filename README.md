@@ -24,7 +24,7 @@ conda activate bci_ai
 
 ## Download Dataset
 
-- BCSS datset : https://drive.google.com/drive/folders/1zqbdkQF8i5cEmZOGmbdQm-EP8dRYtvss?usp=sharing
+- BCSS dataset : https://drive.google.com/drive/folders/1zqbdkQF8i5cEmZOGmbdQm-EP8dRYtvss?usp=sharing
 - ACROBAT : https://snd.se/en/catalogue/dataset/2022-190-1
 - BCI dataset : https://github.com/bupt-ai-cz/BCI/blob/main/download_dataset.md
 
@@ -50,6 +50,8 @@ BCI_AI (root directory)
                     └── xxxxx_test_#.png
 ```
 
+\* BCSS dataset is not supported yet.
+
 ## Download Pretrained segmentation model weight
 
 ```bash
@@ -62,10 +64,11 @@ mv bcss_fold0_ft_model.pth.tar BCSS_segmentation/bcss_fold0_ft_model.pth.tar
 ## How to Run? (Patch Classification)
 
 ```python
+# for CPU-only
+python -m main {--optional arguments}
+
 # for CUDA
 CUBLAS_WORKSPACE_CONFIG=:16:8 python -m main {--optional arguments}
-# for CPU-only
-python -m main --{optional arguments}
 ```
 
 `CUBLAS_WORKSPACE_CONFIG=:16:8` is added to fix the random seed.
