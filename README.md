@@ -89,6 +89,8 @@ CUBLAS_WORKSPACE_CONFIG=:16:8 python -m main --finetune --optimizer_name=AdamW
 
 - `seed :int = 42`
 - `dataset :str = 'BCI_dataset'`
+- `aug_level :int = 0`
+  - 0 : no augmentation, 1: simple augmentation (rotation), 2: complex augmentation
 - `image_size :int = 224`
 - `model_name :str = 'ViT'`
   - one of 'ViT' / 'ResNet18' / 'ResNet34' / 'ResNet50' / 'ResNet101'
@@ -109,7 +111,9 @@ CUBLAS_WORKSPACE_CONFIG=:16:8 python -m main --finetune --optimizer_name=AdamW
 2. Crop patches.
 
 ```bash
-python deepzoom_tiler.py -m 0 -b 20 -d acrobat
+python dsmil-wsi/deepzoom_tiler.py -m 0 -b 20 -d acrobat
+python dsmil-wsi/deepzoom_tiler.py -m 0 2 -b 20 -d acrobat
+
 ```
 
 3. Train an embedder.

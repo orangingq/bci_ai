@@ -125,6 +125,9 @@ def compute_tree_feats(args, bags_list, embedder_low, embedder_high, save_path=N
                 df.to_csv(os.path.join(save_path, bags_list[i].split(os.path.sep)[-2], bags_list[i].split(os.path.sep)[-1]+'.csv'), index=False, float_format='%.4f')
             print('\n')            
 
+def get_abs_path(path):
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), path))
+
 def main():
     parser = argparse.ArgumentParser(description='Compute TCGA features from SimCLR embedder')
     parser.add_argument('--num_classes', default=2, type=int, help='Number of output classes [2]')
@@ -179,7 +182,7 @@ def main():
             else:
                 raise ValueError('Please use batch normalization for ImageNet feature')
         else:
-            weight_path = os.path.join('simclr', 'runs', args.weights_high, 'checkpoints', 'model.pth')
+            weight_path = get_abs_path(os.path.join('simclr', 'runs', args.weights_high, 'checkpoints', 'model.pth'))
             state_dict_weights = torch.load(weight_path, weights_only=True)
             for i in range(4):
                 state_dict_weights.popitem()
@@ -189,10 +192,10 @@ def main():
                 name = k_0
                 new_state_dict[name] = v
             i_classifier_h.load_state_dict(new_state_dict, strict=False)
-            os.makedirs(os.path.join('embedder', args.dataset), exist_ok=True)
-            torch.save(new_state_dict, os.path.join('embedder', args.dataset, 'embedder-high.pth'))
+            os.makedirs(get_abs_path(os.path.join('embedder', args.dataset)), exist_ok=True)
+            torch.save(new_state_dict, get_abs_path(os.path.join('embedder', args.dataset, 'embedder-high.pth')))
 
-            weight_path = os.path.join('simclr', 'runs', args.weights_low, 'checkpoints', 'model.pth')
+            weight_path = get_abs_path(os.path.join('simclr', 'runs', args.weights_low, 'checkpoints', 'model.pth'))
             state_dict_weights = torch.load(weight_path, weights_only=True)
             for i in range(4):
                 state_dict_weights.popitem()
@@ -202,8 +205,8 @@ def main():
                 name = k_0
                 new_state_dict[name] = v
             i_classifier_l.load_state_dict(new_state_dict, strict=False)
-            os.makedirs(os.path.join('embedder', args.dataset), exist_ok=True)
-            torch.save(new_state_dict, os.path.join('embedder', args.dataset, 'embedder-low.pth'))
+            os.makedirs(get_abs_path(os.path.join('embedder', args.dataset)), exist_ok=True)
+            torch.save(new_state_dict, get_abs_path(os.path.join('embedder', args.dataset, 'embedder-low.pth')))
             print('Use pretrained features.')
 
 
@@ -217,7 +220,7 @@ def main():
                 print('Please use batch normalization for ImageNet feature')
         else:
             if args.weights is not None:
-                weight_path = os.path.join('simclr', 'runs', args.weights, 'checkpoints', 'model.pth')
+                weight_path = get_abs_path(os.path.join('simclr', 'runs', args.weights, 'checkpoints', 'model.pth'))
             else:
                 weight_path = glob.glob('dsmil-wsi/simclr/runs/*/checkpoints/*.pth')[-1]
             state_dict_weights = torch.load(weight_path, weights_only=True)
@@ -229,15 +232,15 @@ def main():
                 name = k_0
                 new_state_dict[name] = v
             i_classifier.load_state_dict(new_state_dict, strict=False)
-            os.makedirs(os.path.join('embedder', args.dataset), exist_ok=True)
-            torch.save(new_state_dict, os.path.join('embedder', args.dataset, 'embedder.pth'))
+            os.makedirs(get_abs_path(os.path.join('embedder', args.dataset)), exist_ok=True)
+            torch.save(new_state_dict, get_abs_path(os.path.join('embedder', args.dataset, 'embedder.pth')))
             print('Use pretrained features.')
     
     if args.magnification == 'tree' or args.magnification == 'low' or args.magnification == 'high' :
-        bags_path = os.path.join('..', 'datasets', args.dataset, 'pyramid', '*', '*')
+        bags_path = get_abs_path(os.path.join('..', 'datasets', args.dataset, 'pyramid', '*', '*'))
     else:
-        bags_path = os.path.join('..', 'datasets', args.dataset, 'single', '*', '*')
-    feats_path = os.path.join('datasets', args.dataset)
+        bags_path = get_abs_path(os.path.join('..', 'datasets', args.dataset, 'single', '*', '*'))
+    feats_path = get_abs_path(os.path.join('datasets', args.dataset))
     print('bags_path:', os.path.abspath(bags_path), 'feats_path:', os.path.abspath(feats_path))
         
     os.makedirs(feats_path, exist_ok=True)
@@ -247,18 +250,18 @@ def main():
         compute_tree_feats(args, bags_list, i_classifier_l, i_classifier_h, feats_path)
     else:
         compute_feats(args, bags_list, i_classifier, feats_path, args.magnification)
-    n_classes = glob.glob(os.path.join('datasets', args.dataset, '*'+os.path.sep))
+    n_classes = glob.glob(get_abs_path(os.path.join('datasets', args.dataset, '*'+os.path.sep)))
     n_classes = sorted(n_classes)
     all_df = []
     for i, item in enumerate(n_classes):
-        bag_csvs = glob.glob(os.path.join(item, '*.csv'))
+        bag_csvs = glob.glob(get_abs_path(os.path.join(item, '*.csv')))
         bag_df = pd.DataFrame(bag_csvs)
         bag_df['label'] = i
-        bag_df.to_csv(os.path.join('datasets', args.dataset, item.split(os.path.sep)[2]+'.csv'), index=False)
+        bag_df.to_csv(get_abs_path(os.path.join('datasets', args.dataset, item.split(os.path.sep)[2]+'.csv')), index=False)
         all_df.append(bag_df)
     bags_path = pd.concat(all_df, axis=0, ignore_index=True)
     bags_path = shuffle(bags_path)
-    bags_path.to_csv(os.path.join('datasets', args.dataset, args.dataset+'.csv'), index=False)
+    bags_path.to_csv(get_abs_path(os.path.join('datasets', args.dataset, args.dataset+'.csv')), index=False)
     
 if __name__ == '__main__':
     main()

@@ -73,7 +73,7 @@ def segmentation(
 ):
     # 1) Dataset Load
     print("Dataset Load")
-    dataloaders = get_bci_dataloaders('datasets/BCI_dataset', type='segmentation', batch_size=32, num_workers=4, image_size=256)
+    dataloaders = get_bci_dataloaders('datasets/BCI_dataset', type='segmentation', batch_size=32, num_workers=4, image_size=256, aug_level=0)
 
     # 2) segmentation model load (HookNet)
     print("Load Segmentation Model")

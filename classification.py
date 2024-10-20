@@ -71,7 +71,7 @@ def train(dataloader, model, criterion, optimizer, regularization=None):
 
 def finetune_classification():
     # 1) Dataset Load
-    dataloaders = get_bci_dataloaders(args.dataset, batch_size=32, num_workers=4, image_size=args.image_size)
+    dataloaders = get_bci_dataloaders(args.dataset, batch_size=32, num_workers=4, image_size=args.image_size, aug_level=args.aug_level)
     num_classes = len(dataloaders['train'].dataset.HER2_LEVELS)
     
     # 2) Model Load, Loss Function, Optimizer
@@ -85,7 +85,7 @@ def finetune_classification():
     model.to(args.device)
     
     # 4) Variables for Training
-    start_epoch, num_epochs = last_epoch + 1, 300
+    start_epoch, num_epochs = last_epoch + 1, 100
     best_acc, best_epoch = 0.0, 0
     best_acc5 = 0.0
     train_time = TimeMetric("Training Time", time.time())

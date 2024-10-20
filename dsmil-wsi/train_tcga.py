@@ -19,8 +19,6 @@ from tqdm import tqdm
 def get_bag_feats(csv_file_df, args):
     if args.dataset == 'TCGA-lung-default':
         feats_csv_path = 'datasets/tcga-dataset/tcga_lung_data_feats/' + csv_file_df.iloc[0].split('/')[1] + '.csv'
-    elif args.dataset == 'acrobat':
-        feats_csv_path = csv_file_df['0']
     else:
         feats_csv_path = csv_file_df.iloc[0]
     df = pd.read_csv(feats_csv_path)
@@ -28,22 +26,16 @@ def get_bag_feats(csv_file_df, args):
     feats = feats.to_numpy()
     label = np.zeros(args.num_classes)
     if args.num_classes==1:
-        if args.dataset == 'acrobat':
-            label[0] = csv_file_df['label']
-        else:
-            label[0] = csv_file_df.iloc[1]
+        label[0] = csv_file_df.iloc[1]
     else:
-        if args.dataset == 'acrobat':
-            n_labels = int(csv_file_df['label'])
-        else:
-            n_labels = int(csv_file_df.iloc[1])
+        n_labels = int(csv_file_df.iloc[1])
         if n_labels<=(len(label)-1):
             label[n_labels] = 1
         
     return label, feats, feats_csv_path
 
 def generate_pt_files(args, df):
-    temp_train_dir = "temp_train"
+    temp_train_dir = "dsmil-wsi/temp_train"
     if os.path.exists(temp_train_dir) and len(os.listdir(temp_train_dir)) > 0:
         print('Intermediate training files already exist. Skipping creation.')
         return
@@ -253,10 +245,11 @@ def main():
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, args.num_epochs, 0.000005)
         return milnet, criterion, optimizer, scheduler
     
+    current_path = os.path.dirname(os.path.abspath(__file__))
     if args.dataset == 'TCGA-lung-default':
         bags_csv = 'datasets/tcga-dataset/TCGA.csv'
     else:
-        bags_csv = os.path.join('datasets', args.dataset, args.dataset+'.csv')
+        bags_csv = os.path.join(current_path, 'datasets', args.dataset, args.dataset+'.csv')
 
     generate_pt_files(args, pd.read_csv(bags_csv))
  
@@ -266,7 +259,7 @@ def main():
         kf = KFold(n_splits=5, shuffle=True, random_state=42)
         fold_results = []
 
-        save_path = os.path.join('weights', datetime.date.today().strftime("%Y%m%d"))
+        save_path = os.path.join(current_path, 'weights', datetime.date.today().strftime("%Y%m%d"))
         os.makedirs(save_path, exist_ok=True)
         run = len(glob.glob(os.path.join(save_path, '*.pth')))
 
@@ -310,7 +303,7 @@ def main():
         # bags_path = bags_path.sample(n=50, random_state=42)
         fold_results = []
 
-        save_path = os.path.join('weights', datetime.date.today().strftime("%Y%m%d"))
+        save_path = os.path.join(current_path, 'weights', datetime.date.today().strftime("%Y%m%d"))
         os.makedirs(save_path, exist_ok=True)
         run = len(glob.glob(os.path.join(save_path, '*.pth')))
 
@@ -367,7 +360,7 @@ def main():
         fold_results = []
         fold_models = []
 
-        save_path = os.path.join('weights', datetime.date.today().strftime("%Y%m%d"))
+        save_path = os.path.join(current_path, 'weights', datetime.date.today().strftime("%Y%m%d"))
         os.makedirs(save_path, exist_ok=True)
         run = len(glob.glob(os.path.join(save_path, '*.pth')))
 

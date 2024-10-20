@@ -9,7 +9,9 @@ datasets/acrobat/pyramid
 datasets/acrobat/single
 datasets/acrobat/*/*.tif
 datasets/acrobat/*/*/*.tif
+datasets/acrobat/*/*/*/*.tif
 datasets/acrobat/*.csv
+datasets/acrobat/train/train_part3.zip
 datasets/BCSS_dataset/rgbs_colorNormalized/*.png
 datasets/BCSS_dataset/rgbs_colorNormalized/*/*.png
 
@@ -21,6 +23,7 @@ __pycache__
 */*/*/__pycache__
 */*/*/*/__pycache__
 */*/*/*/*/__pycache__
+logs
 
 # model weight
 BCSS_segmentation/bcss_fold0_ft_model.pth.tar

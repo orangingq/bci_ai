@@ -6,6 +6,7 @@ from torchvision import models as torch_models
 
 seed = 42
 dataset = 'BCI_dataset'
+aug_level = 0 # 0: no augmentation, 1: simple augmentation (rotation), 2: complex augmentation
 image_size = 224
 model_name = 'ViT'
 optimizer_name = 'Adam'
@@ -20,7 +21,7 @@ def get_args():
     '''Get Global Variables as Dictionary'''
     global_variables = [
         'seed', 
-        'dataset', 'image_size',
+        'dataset', 'aug_level', 'image_size',
         'model_name',
         'optimizer_name', 'learning_rate', 'log_freq', 'finetune',
         'load_dir', 'save_dir', 'device'
@@ -29,13 +30,14 @@ def get_args():
 
 def set_args():
     '''Set Arguments from Command Line'''
-    global seed, dataset, image_size, model_name, optimizer_name, learning_rate, log_freq, finetune, load_dir, save_dir, device
+    global seed, dataset, aug_level, image_size, model_name, optimizer_name, learning_rate, log_freq, finetune, load_dir, save_dir, device
     
     parser = argparse.ArgumentParser()
     # Random seed
     parser.add_argument('--seed', type=int, default=seed, help='Random Seed')
     # dataset arguments
     parser.add_argument('--dataset', type=str, default=dataset, help='Dataset')
+    parser.add_argument('--aug_level', type=int, default=aug_level, help='Augmentation Level')
     parser.add_argument('--image_size', type=int, default=image_size, help='Image Size')
     # model arguments
     parser.add_argument('--model_name', type=str, default=model_name, help='Model Name')
