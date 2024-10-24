@@ -1,28 +1,35 @@
 
 # dataset
-datasets/BCI_dataset/*/*/*.png
-datasets/BCI_dataset/BCI_dataset.zip
-datasets/BCI_dataset/*/*/*.pth
-datasets/*.zip
-datasets/acrobat/train/WSI/*
-datasets/acrobat/pyramid
-datasets/acrobat/single
-datasets/acrobat/*/*.tif
-datasets/acrobat/*/*/*.tif
-datasets/acrobat/*/*/*/*.tif
-datasets/acrobat/*.csv
-datasets/acrobat/train/train_part3.zip
-datasets/BCSS_dataset/rgbs_colorNormalized/*.png
-datasets/BCSS_dataset/rgbs_colorNormalized/*/*.png
+# datasets/
+# datasets/BCI_dataset/*/*/*.png
+# datasets/BCI_dataset/BCI_dataset.zip
+# datasets/BCI_dataset/*/*/*.pth
+# datasets/*.zip
+# datasets/acrobat/train/WSI/*
+# datasets/acrobat/pyramid
+# datasets/acrobat/pyramid_HE
+# datasets/acrobat/single
+# datasets/acrobat/*/*.tif
+# datasets/acrobat/*/*/*.tif
+# datasets/acrobat/*/*/*/*.tif
+# datasets/acrobat/*/*/*/*/*.jpeg
+# datasets/acrobat/*.csv
+# datasets/acrobat/train/train_part3.zip
+# datasets/BCSS_dataset/rgbs_colorNormalized/*.png
+# datasets/BCSS_dataset/rgbs_colorNormalized/*/*.png
+
+*.png
+*.tif
+*.jpeg
+*.pth
+*.pt
+*.zip
+*.csv
+
 
 # cache
 .vscode
 __pycache__
-*/__pycache__
-*/*/__pycache__
-*/*/*/__pycache__
-*/*/*/*/__pycache__
-*/*/*/*/*/__pycache__
 logs
 
 # model weight
@@ -31,16 +38,16 @@ BCSS_segmentation/*.zip
 
 # dsmil-wsi
 dsmil-wsi/datasets/
+dsmil-wsi/embedder/
 dsmil-wsi/WSI_temp_files/
 dsmil-wsi/simclr/runs
 dsmil-wsi/simclr/all_patches.csv
 dsmil-wsi/test/
+dsmil-wsi/temp_train
 dsmil-wsi/weights/
-dsmil-wsi/embedder/
-dsmil-wsi/test-c16/
 dsmil-wsi/.ipynb_checkpoints
 dsmil-wsi/.ipynb_checkpoints/
 dsmil-wsi/*/.ipynb_checkpoints/*
 dsmil-wsi/*.ipynb
 dsmil-wsi/abmil.py
-dsmil-wsi/temp_train
+dsmil-wsi/test-c16/

@@ -57,6 +57,17 @@ def set_args():
     print(f'Arguments are set as follows: {get_args()}')
     return
 
+def get_dataloader(type:str='classification', batch_size:int=32, num_workers:int=40, image_size=image_size, aug_level=aug_level)->dict:
+    '''Return Dataloaders from Dataset Name (args.dataset)'''
+    if dataset.lower() == 'acrobat':
+        from datasets.acrobat.dataloader import get_acrobat_dataloaders
+        dataloaders = get_acrobat_dataloaders(type=type, batch_size=batch_size, num_workers=num_workers, image_size=image_size, aug_level=aug_level)
+    elif dataset.lower() == 'bci_dataset':
+        from datasets.BCI_dataset.dataloader import get_bci_dataloaders
+        dataloaders = get_bci_dataloaders(type=type, batch_size=batch_size, num_workers=num_workers, image_size=image_size, aug_level=aug_level)
+    else:
+        raise ValueError(f'Dataset {dataset} is not available')
+    return dataloaders
 
 def get_model(num_classes:int)->nn.Module:
     '''Return Models (Classification model & Segmentation model) from Model Name (args.model_name)'''    

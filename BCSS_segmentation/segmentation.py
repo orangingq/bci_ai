@@ -9,7 +9,7 @@ from tqdm import tqdm
 from PIL import Image
 from BCSS_segmentation.models.hooknet import HookNet
 from utils.util import random_seed, remove_module_prefix
-from datasets.BCI_dataset.dataloader import get_bci_dataloaders
+from utils.args import get_dataloader
 
 BCSS_CLASSES = ["tumor", "stroma", "infla", "necr", "other"]
 
@@ -73,7 +73,7 @@ def segmentation(
 ):
     # 1) Dataset Load
     print("Dataset Load")
-    dataloaders = get_bci_dataloaders('datasets/BCI_dataset', type='segmentation', batch_size=32, num_workers=4, image_size=256, aug_level=0)
+    dataloaders = get_dataloader(type='segmentation', batch_size=32, num_workers=4, image_size=256, aug_level=0)
 
     # 2) segmentation model load (HookNet)
     print("Load Segmentation Model")

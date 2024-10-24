@@ -178,7 +178,7 @@ def main():
             train_loss = epoch_train(bags_list, optimizer, criterion, milnet, args) # iterate all bags
             test_loss, bag_labels, bag_predictions = epoch_test(test_list, criterion, milnet, args)
             accuracy, auc_value, precision, recall, fscore = five_scores(bag_labels, bag_predictions)
-            sys.stdout.write('\r Epoch [%d/%d] train loss: %.4f, test loss: %.4f, accuracy: %.4f, aug score: %.4f, precision: %.4f, recall: %.4f, fscore: %.4f ' % 
+            sys.stdout.write('\n\r Epoch [%d/%d] train loss: %.4f, test loss: %.4f, accuracy: %.4f, aug score: %.4f, precision: %.4f, recall: %.4f, fscore: %.4f ' % 
                   (epoch+1, args.num_epoch, train_loss, test_loss, accuracy, auc_value, precision, recall, fscore))
             optimal_ac = max(accuracy, optimal_ac)
             scheduler.step()

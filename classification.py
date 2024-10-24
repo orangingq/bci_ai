@@ -1,9 +1,8 @@
 import time
 import torch
-from datasets.BCI_dataset.dataloader import get_bci_dataloaders
 from utils import Metric, TimeMetric, MetricGroup
 import utils.args as args
-from utils.args import get_model, get_optimizer
+from utils.args import get_dataloader, get_model, get_optimizer
 from utils.save import load_checkpoint, save_checkpoint
 
 
@@ -71,7 +70,7 @@ def train(dataloader, model, criterion, optimizer, regularization=None):
 
 def finetune_classification():
     # 1) Dataset Load
-    dataloaders = get_bci_dataloaders(args.dataset, batch_size=32, num_workers=4, image_size=args.image_size, aug_level=args.aug_level)
+    dataloaders = get_dataloader(batch_size=32, num_workers=4)
     num_classes = len(dataloaders['train'].dataset.HER2_LEVELS)
     
     # 2) Model Load, Loss Function, Optimizer

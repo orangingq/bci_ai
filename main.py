@@ -2,10 +2,9 @@ import os
 import torch
 from BCSS_segmentation import segmentation
 import utils.args as args
-from utils.args import get_model
+from utils.args import get_model, get_dataloader
 from utils import random_seed, load_checkpoint
 from classification import finetune_classification, inference
-from datasets.BCI_dataset.dataloader import get_bci_dataloaders
 
 def compute_final_grade(grades, tumor_portion):
     final_grades = [] #TODO: compute final grade
@@ -18,7 +17,7 @@ def framework():
         dataloaders, model1 = finetune_classification()
     else:
         print("Skip Fine-tuning classification model")
-        dataloaders = get_bci_dataloaders(args.dataset, type='classification', batch_size=32, num_workers=4, image_size=args.image_size, aug_level=args.aug_level)
+        dataloaders = get_dataloader(type='classification', batch_size=32, num_workers=4)
         model1 = load_checkpoint(get_model(num_classes=4))[0] 
         model1.to(args.device)
     

@@ -59,12 +59,11 @@ def train(args, train_df, milnet, criterion, optimizer):
     milnet.train()
     dirs = shuffle(train_df)
     total_loss = 0
-    Tensor = torch.cuda.FloatTensor
     for i, item in enumerate(dirs):
         optimizer.zero_grad()
         stacked_data = torch.load(item, map_location='cuda:0', weights_only=True)
-        bag_label = Tensor(stacked_data[0, args.feats_size:]).unsqueeze(0)
-        bag_feats = Tensor(stacked_data[:, :args.feats_size])
+        bag_label = stacked_data[0, args.feats_size:].clone().detach().unsqueeze(0)
+        bag_feats = stacked_data[:, :args.feats_size].clone().detach()
         bag_feats = dropout_patches(bag_feats, 1-args.dropout_patch)
         bag_feats = bag_feats.view(-1, args.feats_size)
         ins_prediction, bag_prediction, _, _ = milnet(bag_feats)
@@ -90,15 +89,19 @@ def test(args, test_df, milnet, criterion, thresholds=None, return_predictions=F
     total_loss = 0
     test_labels = []
     test_predictions = []
-    Tensor = torch.cuda.FloatTensor
     with torch.no_grad():
         for i, item in enumerate(test_df):
             stacked_data = torch.load(item, map_location='cuda:0', weights_only=True)
-            bag_label = Tensor(stacked_data[0, args.feats_size:]).unsqueeze(0)
-            bag_feats = Tensor(stacked_data[:, :args.feats_size])
+            bag_label = stacked_data[0, args.feats_size:].clone().detach().unsqueeze(0)
+            bag_feats = stacked_data[:, :args.feats_size].clone().detach()
             bag_feats = dropout_patches(bag_feats, 1-args.dropout_patch)
             bag_feats = bag_feats.view(-1, args.feats_size)
+            bag_feats = torch.nan_to_num(bag_feats, nan=0.0)
+            assert not torch.isnan(bag_feats).any(), f"bag_feats contains {torch.isnan(bag_feats).sum()} NaN elements"
             ins_prediction, bag_prediction, _, _ = milnet(bag_feats)
+            if torch.isnan(ins_prediction).any():
+                print(f"ins_prediction contains {torch.isnan(ins_prediction).sum()} NaN elements")
+                torch.nan_to_num(ins_prediction, nan=0.0)
             max_prediction, _ = torch.max(ins_prediction, 0)  
             bag_loss = criterion(bag_prediction.view(1, -1), bag_label.view(1, -1))
             max_loss = criterion(max_prediction.view(1, -1), bag_label.view(1, -1))
@@ -120,15 +123,22 @@ def test(args, test_df, milnet, criterion, thresholds=None, return_predictions=F
         test_predictions = class_prediction_bag
         test_labels = np.squeeze(test_labels)
     else:        
-        for i in range(args.num_classes):
-            class_prediction_bag = copy.deepcopy(test_predictions[:, i])
-            class_prediction_bag[test_predictions[:, i]>=thresholds_optimal[i]] = 1
-            class_prediction_bag[test_predictions[:, i]<thresholds_optimal[i]] = 0
-            test_predictions[:, i] = class_prediction_bag
-    bag_score = 0
-    for i in range(0, len(test_df)):
-        bag_score = np.array_equal(test_labels[i], test_predictions[i]) + bag_score         
+        # CSH - only one true label per bag
+        test_predictions = test_predictions.argmax(axis=1)
+        test_labels = test_labels.argmax(axis=1)
+        assert test_labels.max() < args.num_classes, f"test_labels.max() = {test_labels.max()} >= args.num_classes = {args.num_classes}"
+        assert test_predictions.max() < args.num_classes, f"test_predictions.max() = {test_predictions.max()} >= args.num_classes = {args.num_classes}"
+        # for i in range(args.num_classes):
+        #     class_prediction_bag = copy.deepcopy(test_predictions[:, i])
+        #     class_prediction_bag[test_predictions[:, i]>=thresholds_optimal[i]] = 1
+        #     class_prediction_bag[test_predictions[:, i]<thresholds_optimal[i]] = 0
+        #     test_predictions[:, i] = class_prediction_bag
+    bag_score = (test_labels == test_predictions).sum()
+    # bag_score = 0
+    # for i in range(0, len(test_df)):
+    #     bag_score = np.array_equal(test_labels[i], test_predictions[i]) + bag_score         
     avg_score = bag_score / len(test_df)
+    print(f"\tAverage ACC\t: {avg_score:.4f}")
     
     if return_predictions:
         return total_loss / len(test_df), avg_score, auc_value, thresholds_optimal, test_predictions, test_labels
@@ -144,15 +154,17 @@ def multi_label_roc(labels, predictions, num_classes, pos_label=1):
         predictions = predictions[:, None]
     if labels.ndim == 1:
         labels = np.expand_dims(labels, axis=-1)
+    print("")
     for c in range(0, num_classes):
         label = labels[:, c]
         prediction = predictions[:, c]
+        prediction = np.nan_to_num(prediction, nan=0.0)
         fpr, tpr, threshold = roc_curve(label, prediction, pos_label=1)
         fpr_optimal, tpr_optimal, threshold_optimal = optimal_thresh(fpr, tpr, threshold)
         # c_auc = roc_auc_score(label, prediction)
         try:
             c_auc = roc_auc_score(label, prediction)
-            print("ROC AUC score:", c_auc)
+            print(f"\t[{c}] ROC AUC\t: {c_auc:.4f}")
         except ValueError as e:
             if str(e) == "Only one class present in y_true. ROC AUC score is not defined in that case.":
                 print("ROC AUC score is not defined when only one class is present in y_true. c_auc is set to 1.")
@@ -173,11 +185,11 @@ def optimal_thresh(fpr, tpr, thresholds, p=0):
 
 def print_epoch_info(epoch, args, train_loss_bag, test_loss_bag, avg_score, aucs):
     if args.dataset.startswith('TCGA-lung'):
-        print('\r Epoch [%d/%d] train loss: %.4f test loss: %.4f, average score: %.4f, auc_LUAD: %.4f, auc_LUSC: %.4f' % 
+        print('\n\r Epoch [%d/%d] train loss: %.4f test loss: %.4f, average score: %.4f, auc_LUAD: %.4f, auc_LUSC: %.4f' % 
                 (epoch, args.num_epochs, train_loss_bag, test_loss_bag, avg_score, aucs[0], aucs[1]))
     else:
-        print('\r Epoch [%d/%d] train loss: %.4f test loss: %.4f, average score: %.4f, AUC: ' % 
-                (epoch, args.num_epochs, train_loss_bag, test_loss_bag, avg_score) + '|'.join('class-{}>>{}'.format(*k) for k in enumerate(aucs))) 
+        print('\n\r Epoch [%d/%d] train loss: %.4f test loss: %.4f, average score: %.4f, AUC: ' % 
+                (epoch, args.num_epochs, train_loss_bag, test_loss_bag, avg_score) + '|'.join('class-{}>>{:.4f}'.format(*k) for k in enumerate(aucs))) 
 
 def get_current_score(avg_score, aucs):
     current_score = (sum(aucs) + avg_score)/2
@@ -197,7 +209,7 @@ def print_save_message(args, save_name, thresholds_optimal):
         print('Best model saved at: ' + save_name + ' Best thresholds: LUAD %.4f, LUSC %.4f' % (thresholds_optimal[0], thresholds_optimal[1]))
     else:
         print('Best model saved at: ' + save_name)
-        print('Best thresholds ===>>> '+ '|'.join('class-{}>>{}'.format(*k) for k in enumerate(thresholds_optimal)))
+        print('Best thresholds ===>>> '+ '|'.join('class-{}>>{:.4f}'.format(*k) for k in enumerate(thresholds_optimal)))
 
 def main():
     parser = argparse.ArgumentParser(description='Train DSMIL on 20x patch features learned by SimCLR')
@@ -254,9 +266,9 @@ def main():
     generate_pt_files(args, pd.read_csv(bags_csv))
  
     if args.eval_scheme == '5-fold-cv':
-        bags_path = glob.glob('temp_train/*.pt')
+        bags_path = glob.glob('dsmil-wsi/temp_train/*.pt')
         # bags_path = bags_path.sample(n=200)
-        kf = KFold(n_splits=5, shuffle=True, random_state=42)
+        kf = KFold(n_splits=5, shuffle=True, random_state=2024)
         fold_results = []
 
         save_path = os.path.join(current_path, 'weights', datetime.date.today().strftime("%Y%m%d"))
@@ -299,7 +311,7 @@ def main():
 
 
     elif args.eval_scheme == '5-time-train+valid+test':
-        bags_path = glob.glob('temp_train/*.pt')
+        bags_path = glob.glob('dsmil-wsi/temp_train/*.pt')
         # bags_path = bags_path.sample(n=50, random_state=42)
         fold_results = []
 
@@ -352,7 +364,7 @@ def main():
             print(f"Class {i}: Mean AUC = {mean_score:.4f}")
 
     if args.eval_scheme == '5-fold-cv-standalone-test':
-        bags_path = glob.glob('temp_train/*.pt')
+        bags_path = glob.glob('dsmil-wsi/temp_train/*.pt')
         bags_path = shuffle(bags_path)
         reserved_testing_bags = bags_path[:int(args.split*len(bags_path))]
         bags_path = bags_path[int(args.split*len(bags_path)):]

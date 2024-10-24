@@ -70,8 +70,12 @@ def compute_feats(args, bags_list, i_classifier, save_path=None, magnification='
         with torch.no_grad():
             for iteration, batch in enumerate(dataloader):
                 patches = batch['input'].float().cuda() 
+                if torch.isnan(patches).any():
+                    print(f"iteration : {iteration}, {torch.isnan(patches).sum() - skip}")
+                    continue
                 feats, classes = i_classifier(patches)
                 feats = feats.cpu().numpy()
+                assert not np.isnan(feats).any(), f"{iteration} feats contains NaN elements"
                 feats_list.extend(feats)
                 sys.stdout.write('\r Computed: {}/{} -- {}/{}'.format(i+1, num_bags, iteration+1, len(dataloader)))
         if len(feats_list) == 0:
@@ -80,6 +84,7 @@ def compute_feats(args, bags_list, i_classifier, save_path=None, magnification='
             df = pd.DataFrame(feats_list)
             os.makedirs(os.path.join(save_path, bags_list[i].split(os.path.sep)[-2]), exist_ok=True)
             df.to_csv(os.path.join(save_path, bags_list[i].split(os.path.sep)[-2], bags_list[i].split(os.path.sep)[-1]+'.csv'), index=False, float_format='%.4f')
+            print('\t: ', os.path.join(save_path, bags_list[i].split(os.path.sep)[-2], bags_list[i].split(os.path.sep)[-1]+'.csv'))
         
 def compute_tree_feats(args, bags_list, embedder_low, embedder_high, save_path=None):
     embedder_low.eval()
@@ -96,8 +101,9 @@ def compute_tree_feats(args, bags_list, embedder_low, embedder_high, save_path=N
                 patches = batch['input'].float().cuda()
                 feats, classes = embedder_low(patches)
                 feats = feats.cpu().numpy()
+                assert not np.isnan(feats).any(), f"feats contains {np.isnan(feats).sum()} NaN elements"
                 feats_list.extend(feats)
-            for idx, low_patch in enumerate(low_patches):
+            for idx, low_patch in enumerate(low_patches): # for each low patch, find corresponding high patches
                 high_folder = os.path.dirname(low_patch) + os.sep + os.path.splitext(os.path.basename(low_patch))[0]
                 high_patches = glob.glob(high_folder+os.sep+'*.jpg') + glob.glob(high_folder+os.sep+'*.jpeg')
                 if len(high_patches) == 0:
@@ -123,7 +129,8 @@ def compute_tree_feats(args, bags_list, embedder_low, embedder_high, save_path=N
                 df = pd.DataFrame(feats_tree_list)
                 os.makedirs(os.path.join(save_path, bags_list[i].split(os.path.sep)[-2]), exist_ok=True)
                 df.to_csv(os.path.join(save_path, bags_list[i].split(os.path.sep)[-2], bags_list[i].split(os.path.sep)[-1]+'.csv'), index=False, float_format='%.4f')
-            print('\n')            
+                print('\t: ', os.path.join(save_path, bags_list[i].split(os.path.sep)[-2], bags_list[i].split(os.path.sep)[-1]+'.csv'))
+            # print('\n')            
 
 def get_abs_path(path):
     return os.path.abspath(os.path.join(os.path.dirname(__file__), path))
@@ -207,7 +214,7 @@ def main():
             i_classifier_l.load_state_dict(new_state_dict, strict=False)
             os.makedirs(get_abs_path(os.path.join('embedder', args.dataset)), exist_ok=True)
             torch.save(new_state_dict, get_abs_path(os.path.join('embedder', args.dataset, 'embedder-low.pth')))
-            print('Use pretrained features.')
+            print(f'Use pretrained features: {weight_path}')
 
 
     elif args.magnification == 'single' or args.magnification == 'high' or args.magnification == 'low':  
@@ -234,7 +241,7 @@ def main():
             i_classifier.load_state_dict(new_state_dict, strict=False)
             os.makedirs(get_abs_path(os.path.join('embedder', args.dataset)), exist_ok=True)
             torch.save(new_state_dict, get_abs_path(os.path.join('embedder', args.dataset, 'embedder.pth')))
-            print('Use pretrained features.')
+            print(f'Use pretrained features: {weight_path}')
     
     if args.magnification == 'tree' or args.magnification == 'low' or args.magnification == 'high' :
         bags_path = get_abs_path(os.path.join('..', 'datasets', args.dataset, 'pyramid', '*', '*'))
@@ -257,11 +264,11 @@ def main():
         bag_csvs = glob.glob(get_abs_path(os.path.join(item, '*.csv')))
         bag_df = pd.DataFrame(bag_csvs)
         bag_df['label'] = i
-        bag_df.to_csv(get_abs_path(os.path.join('datasets', args.dataset, item.split(os.path.sep)[2]+'.csv')), index=False)
+        bag_df.to_csv(get_abs_path(os.path.join('datasets', args.dataset, item.split(os.path.sep)[2]+'.csv')), index=False) # dsmil-wsi/datasets/acrobat/{label}.csv
         all_df.append(bag_df)
     bags_path = pd.concat(all_df, axis=0, ignore_index=True)
     bags_path = shuffle(bags_path)
-    bags_path.to_csv(get_abs_path(os.path.join('datasets', args.dataset, args.dataset+'.csv')), index=False)
+    bags_path.to_csv(get_abs_path(os.path.join('datasets', args.dataset, args.dataset+'.csv')), index=False) # dsmil-wsi/datasets/acrobat/acrobat.csv
     
 if __name__ == '__main__':
     main()

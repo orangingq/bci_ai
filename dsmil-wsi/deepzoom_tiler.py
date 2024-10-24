@@ -88,6 +88,8 @@ class DeepZoomImageTiler(object):
         self._processed = 0
         self._target_levels = target_levels
         self._mag_base = int(mag_base)
+        self.cut_row_edge = 3 # cut the edge rows/cols
+        self.cut_col_edge = 5
 
     def run(self):
         self._write_tiles()
@@ -103,19 +105,20 @@ class DeepZoomImageTiler(object):
             if not os.path.exists(tiledir):
                 os.makedirs(tiledir)
             cols, rows = self._dz.level_tiles[level]
-            for row in range(rows):
-                for col in range(cols):
+            total = (cols - 2*self.cut_col_edge) * (rows - 2*self.cut_row_edge)
+            for row in range(self.cut_row_edge, rows - self.cut_row_edge): # cut the edge
+                for col in range(self.cut_col_edge, cols - self.cut_col_edge): # cut the edge
                     tilename = os.path.join(tiledir, '%d_%d.%s' % (
                                     col, row, self._format))
                     if not os.path.exists(tilename):
                         self._queue.put((self._associated, level, (col, row),
                                     tilename))
-                    self._tile_done()
+                    self._tile_done(total)
             mag_idx += 1
 
-    def _tile_done(self):
+    def _tile_done(self, total):
         self._processed += 1
-        count, total = self._processed, self._dz.tile_count
+        count = self._processed
         if count % 100 == 0 or count == total:
             print("Tiling %s: wrote %d/%d tiles" % (
                     self._associated or 'slide', count, total),
@@ -224,7 +227,7 @@ def nested_patches(img_slide, out_base, level=(0,), ext='jpeg'):
     
     # 이미지 슬라이드의 이름과 클래스를 추출
     img_name = img_slide.split(os.sep)[-1].split('.')[0]
-    img_class = img_slide.split(os.sep)[2]
+    img_class = img_slide.split(os.sep)[-2]
     # 임시 파일 디렉토리에서 레벨의 개수를 계산
     temp_file_dir = get_abs_path('WSI_temp_files')
     temp_file_subdirs = os.path.join(temp_file_dir, '*')
@@ -275,15 +278,15 @@ def get_abs_path(path):
 if __name__ == '__main__':
     Image.MAX_IMAGE_PIXELS = None
     parser = argparse.ArgumentParser(description='Patch extraction for WSI')
-    parser.add_argument('-d', '--dataset', type=str, default='TCGA-lung', help='Dataset name')
-    parser.add_argument('-e', '--overlap', type=int, default=0, help='Overlap of adjacent tiles [0]')
-    parser.add_argument('-f', '--format', type=str, default='jpeg', help='Image format for tiles [jpeg]')
-    parser.add_argument('-v', '--slide_format', type=str, default='svs', help='Image format for tiles [svs]')
-    parser.add_argument('-j', '--workers', type=int, default=4, help='Number of worker processes to start [4]')
-    parser.add_argument('-q', '--quality', type=int, default=70, help='JPEG compression quality [70]')
-    parser.add_argument('-s', '--tile_size', type=int, default=224, help='Tile size [224]')
-    parser.add_argument('-b', '--base_mag', type=float, default=20, help='Maximum magnification for patch extraction [20]')
-    parser.add_argument('-m', '--magnifications', type=int, nargs='+', default=(0,), help='Levels for patch extraction [0]')
+    parser.add_argument('-d', '--dataset', type=str, default='TCGA-lung', help='Dataset name') # acrobat
+    parser.add_argument('-e', '--overlap', type=int, default=0, help='Overlap of adjacent tiles [0]') # 0
+    parser.add_argument('-f', '--format', type=str, default='jpeg', help='Image format for tiles [jpeg]') # jpeg
+    parser.add_argument('-v', '--slide_format', type=str, default='svs', help='Image format for tiles [svs]') # tif
+    parser.add_argument('-j', '--workers', type=int, default=4, help='Number of worker processes to start [4]') # 4
+    parser.add_argument('-q', '--quality', type=int, default=70, help='JPEG compression quality [70]') # 70
+    parser.add_argument('-s', '--tile_size', type=int, default=224, help='Tile size [224]') # 224
+    parser.add_argument('-b', '--base_mag', type=float, default=20, help='Maximum magnification for patch extraction [20]') # 20
+    parser.add_argument('-m', '--magnifications', type=int, nargs='+', default=(0,), help='Levels for patch extraction [0]') 
     parser.add_argument('-o', '--objective', type=float, default=20, help='The default objective power if metadata does not present [20]')
     parser.add_argument('-t', '--background_t', type=int, default=15, help='Threshold for filtering background [15]')  
     args = parser.parse_args()
@@ -295,15 +298,16 @@ if __name__ == '__main__':
     else:
         out_base = os.path.join(path_base, 'single')
     all_slides = glob.glob(os.path.join(path_base, '*/*.'+args.slide_format)) 
-    
+    shutil.rmtree(get_abs_path('WSI_temp_files'), ignore_errors=True)
+
     # pos-i_pos-j -> x, y
     for idx, c_slide in enumerate(all_slides):
-        save_path = os.path.join(out_base, c_slide.split(os.sep)[2], c_slide.split(os.sep)[3].split('.')[0])
+        save_path = os.path.join(out_base, c_slide.split(os.sep)[-2], c_slide.split(os.sep)[-1].split('.')[0])
         if os.path.exists(save_path):
             print(f'Process slide {idx+1}/{len(all_slides)} : {c_slide} -> {save_path} [Already exists]')
             continue
         print(f'Process slide {idx+1}/{len(all_slides)} : {c_slide} -> {save_path}')
         DeepZoomStaticTiler(c_slide, get_abs_path('WSI_temp'), levels, args.base_mag, args.objective, args.format, args.tile_size, args.overlap, True, args.quality, args.workers, args.background_t).run()
         nested_patches(c_slide, out_base, levels, ext=args.format)
-        shutil.rmtree(get_abs_path('WSI_temp_files'))
+        shutil.rmtree(get_abs_path('WSI_temp_files'), ignore_errors=True)
     print('Patch extraction done for {} slides.'.format(len(all_slides)))
