@@ -11,7 +11,7 @@ def inference(dataloader, model):
     result = []
     with torch.no_grad():
         for batch in dataloader:
-            inputs = batch['HE'].to(args.device)
+            inputs = batch['IHC'].to(args.device)
             logits = model(inputs)
             result.append(logits.argmax(1))
     result = torch.cat(result, 0).cpu().numpy()
@@ -23,7 +23,7 @@ def validation(dataloader, model, criterion):
     model.eval()
     with torch.no_grad():
         for batch in dataloader:
-            inputs = batch['HE'].to(args.device)
+            inputs = batch['IHC'].to(args.device)
             targets = batch['label'].to(args.device)
             logits = model(inputs)
             loss = criterion(logits, targets)
@@ -42,7 +42,7 @@ def train(dataloader, model, criterion, optimizer, regularization=None):
     model.train()
     len_epoch = len(dataloader)
     for step, batch in enumerate(dataloader):
-        inputs = batch['HE'].to(args.device)
+        inputs = batch['IHC'].to(args.device)
         targets = batch['label'].to(args.device)
         logits = model(inputs)
         loss = criterion(logits, targets)

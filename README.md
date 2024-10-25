@@ -138,12 +138,14 @@ CUDA_VISIBLE_DEVICES=1 python run.py --dataset=acrobat --level=low --multiscale=
 
 ```bash
 cd ../.. # .../bci_ai
+# compute multi-scale 
+CUDA_VISIBLE_DEVICES=2 python dsmil-wsi/compute_feats.py --dataset=acrobat --num_classes=4 --weights_low=Oct24_15-24-58_dmserver4 --weights_high=Oct24_15-24-21_dmserver4 --magnification=tree
+# compute multi-scale with pretrained weights on ImageNet 
+CUDA_VISIBLE_DEVICES=2 python dsmil-wsi/compute_feats.py --dataset=acrobat --num_classes=4 --weights_low=ImageNet --weights_high=ImageNet --magnification=tree --norm_layer=batch 
 # compute features for 10x magnification
-CUDA_VISIBLE_DEVICES=1 python dsmil-wsi/compute_feats.py --dataset=acrobat --num_classes=4 --batch_size=64 --magnification=high
+CUDA_VISIBLE_DEVICES=2 python dsmil-wsi/compute_feats.py --dataset=acrobat --num_classes=4 --batch_size=64 --magnification=high --weights=Oct24_15-24-21_dmserver4
 # compute features for 2.5x magnification
-CUDA_VISIBLE_DEVICES=1 python dsmil-wsi/compute_feats.py --dataset=acrobat --num_classes=4 --batch_size=64 --magnification=low
-# compute multi-scale at once
-dsmil-wsi/compute_feats.py --dataset=acrobat --num_classes=4 --weights_low=ImageNet --weights_high=ImageNet --magnification=tree --norm_layer=batch 
+CUDA_VISIBLE_DEVICES=3 python dsmil-wsi/compute_feats.py --dataset=acrobat --num_classes=4 --batch_size=64 --magnification=low --weights=Oct24_15-24-58_dmserver4
 ```
 
 5. Training.

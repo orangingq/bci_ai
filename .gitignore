@@ -1,23 +1,5 @@
 
 # dataset
-# datasets/
-# datasets/BCI_dataset/*/*/*.png
-# datasets/BCI_dataset/BCI_dataset.zip
-# datasets/BCI_dataset/*/*/*.pth
-# datasets/*.zip
-# datasets/acrobat/train/WSI/*
-# datasets/acrobat/pyramid
-# datasets/acrobat/pyramid_HE
-# datasets/acrobat/single
-# datasets/acrobat/*/*.tif
-# datasets/acrobat/*/*/*.tif
-# datasets/acrobat/*/*/*/*.tif
-# datasets/acrobat/*/*/*/*/*.jpeg
-# datasets/acrobat/*.csv
-# datasets/acrobat/train/train_part3.zip
-# datasets/BCSS_dataset/rgbs_colorNormalized/*.png
-# datasets/BCSS_dataset/rgbs_colorNormalized/*/*.png
-
 *.png
 *.tif
 *.jpeg

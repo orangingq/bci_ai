@@ -15,6 +15,8 @@ from skimage.util import img_as_ubyte
 from skimage import filters
 from PIL import Image, ImageFilter, ImageStat
 
+from utils import path
+
 Image.MAX_IMAGE_PIXELS = None
 
 import openslide
@@ -101,15 +103,14 @@ class DeepZoomImageTiler(object):
         for level in range(self._dz.level_count):
             if not (level in target_levels):
                 continue
-            tiledir = os.path.join("%s_files" % self._basename, str(mag_list[mag_idx]))
+            tiledir = os.path.join(f"{self._basename}_files", str(mag_list[mag_idx]))
             if not os.path.exists(tiledir):
                 os.makedirs(tiledir)
             cols, rows = self._dz.level_tiles[level]
             total = (cols - 2*self.cut_col_edge) * (rows - 2*self.cut_row_edge)
             for row in range(self.cut_row_edge, rows - self.cut_row_edge): # cut the edge
                 for col in range(self.cut_col_edge, cols - self.cut_col_edge): # cut the edge
-                    tilename = os.path.join(tiledir, '%d_%d.%s' % (
-                                    col, row, self._format))
+                    tilename = os.path.join(tiledir, f'{col}_{row}.{self._format}')
                     if not os.path.exists(tilename):
                         self._queue.put((self._associated, level, (col, row),
                                     tilename))
@@ -292,11 +293,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
     levels = tuple(sorted(args.magnifications))
     assert len(levels)<=2, 'Only 1 or 2 magnifications are supported!'
-    path_base = get_abs_path(os.path.join('../datasets', args.dataset))
-    if len(levels) == 2:
-        out_base = os.path.join(path_base, 'pyramid')
-    else:
-        out_base = os.path.join(path_base, 'single')
+    path_base = path.get_data_dir(args.dataset) # get_abs_path(os.path.join('../datasets', args.dataset))
+    # if len(levels) == 2:
+    out_base = path.get_patch_dir(args.dataset, 'pyramid' if len(levels)==2 else 'single') # os.path.join(path_base, 'pyramid')
+    # else:
+    #     out_base = os.path.join(path_base, 'single')
     all_slides = glob.glob(os.path.join(path_base, '*/*.'+args.slide_format)) 
     shutil.rmtree(get_abs_path('WSI_temp_files'), ignore_errors=True)
 

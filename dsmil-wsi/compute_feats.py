@@ -1,3 +1,4 @@
+import shutil
 import dsmil as mil
 
 import torch
@@ -13,7 +14,7 @@ import numpy as np
 from PIL import Image
 from collections import OrderedDict
 from sklearn.utils import shuffle
-
+from utils import path
 
 
 class BagDataset():
@@ -55,23 +56,26 @@ def bag_dataset(args, csv_file_path):
     dataloader = DataLoader(transformed_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers, drop_last=False)
     return dataloader, len(transformed_dataset)
 
+def get_patch_list(bag, magnification):
+    if magnification=='single' or magnification=='low':
+        patch_list = glob.glob(os.path.join(bag, '*.jpg')) + glob.glob(os.path.join(bag, '*.jpeg'))
+    elif magnification=='high':
+        patch_list = glob.glob(os.path.join(bag, '*'+os.sep+'*.jpg')) + glob.glob(os.path.join(bag, '*'+os.sep+'*.jpeg'))
+    return patch_list
+
 def compute_feats(args, bags_list, i_classifier, save_path=None, magnification='single'):
     i_classifier.eval()
     num_bags = len(bags_list)
     Tensor = torch.FloatTensor
     for i in range(0, num_bags):
         feats_list = []
-        if magnification=='single' or magnification=='low':
-            csv_file_path = glob.glob(os.path.join(bags_list[i], '*.jpg')) + glob.glob(os.path.join(bags_list[i], '*.jpeg'))
-        elif magnification=='high':
-            csv_file_path = glob.glob(os.path.join(bags_list[i], '*'+os.sep+'*.jpg')) + glob.glob(os.path.join(bags_list[i], '*'+os.sep+'*.jpeg'))
-            print()
-        dataloader, bag_size = bag_dataset(args, csv_file_path)
+        patch_list = get_patch_list(bags_list[i], magnification)
+        dataloader, bag_size = bag_dataset(args, patch_list)
         with torch.no_grad():
             for iteration, batch in enumerate(dataloader):
                 patches = batch['input'].float().cuda() 
                 if torch.isnan(patches).any():
-                    print(f"iteration : {iteration}, {torch.isnan(patches).sum() - skip}")
+                    print(f"iteration : {iteration}, {torch.isnan(patches).sum()} NAN elements")
                     continue
                 feats, classes = i_classifier(patches)
                 feats = feats.cpu().numpy()
@@ -82,18 +86,20 @@ def compute_feats(args, bags_list, i_classifier, save_path=None, magnification='
             print('No valid patch extracted from: ' + bags_list[i])
         else:
             df = pd.DataFrame(feats_list)
-            os.makedirs(os.path.join(save_path, bags_list[i].split(os.path.sep)[-2]), exist_ok=True)
-            df.to_csv(os.path.join(save_path, bags_list[i].split(os.path.sep)[-2], bags_list[i].split(os.path.sep)[-1]+'.csv'), index=False, float_format='%.4f')
-            print('\t: ', os.path.join(save_path, bags_list[i].split(os.path.sep)[-2], bags_list[i].split(os.path.sep)[-1]+'.csv'))
+            bag_dir = os.path.join(save_path, bags_list[i].split(os.path.sep)[-2])
+            save_file = os.path.join(bag_dir, bags_list[i].split(os.path.sep)[-1]+'.csv')
+            os.makedirs(bag_dir, exist_ok=True)
+            df.to_csv(save_file, index=False, float_format='%.4f')
+            print('\t: ', save_file)
         
 def compute_tree_feats(args, bags_list, embedder_low, embedder_high, save_path=None):
     embedder_low.eval()
     embedder_high.eval()
     num_bags = len(bags_list)
-    Tensor = torch.FloatTensor
     with torch.no_grad():
         for i in range(0, num_bags): 
-            low_patches = glob.glob(os.path.join(bags_list[i], '*.jpg')) + glob.glob(os.path.join(bags_list[i], '*.jpeg'))
+            low_patches = get_patch_list(bags_list[i], 'low')
+            # low_patches = glob.glob(os.path.join(bags_list[i], '*.jpg')) + glob.glob(os.path.join(bags_list[i], '*.jpeg'))
             feats_list = []
             feats_tree_list = []
             dataloader, bag_size = bag_dataset(args, low_patches)
@@ -127,13 +133,15 @@ def compute_tree_feats(args, bags_list, embedder_low, embedder_high, save_path=N
                 print('No valid patch extracted from: ' + bags_list[i])
             else:
                 df = pd.DataFrame(feats_tree_list)
-                os.makedirs(os.path.join(save_path, bags_list[i].split(os.path.sep)[-2]), exist_ok=True)
-                df.to_csv(os.path.join(save_path, bags_list[i].split(os.path.sep)[-2], bags_list[i].split(os.path.sep)[-1]+'.csv'), index=False, float_format='%.4f')
-                print('\t: ', os.path.join(save_path, bags_list[i].split(os.path.sep)[-2], bags_list[i].split(os.path.sep)[-1]+'.csv'))
+                bag_dir = os.path.join(save_path, bags_list[i].split(os.path.sep)[-2])
+                save_file = os.path.join(bag_dir, bags_list[i].split(os.path.sep)[-1]+'.csv')
+                os.makedirs(bag_dir, exist_ok=True)
+                df.to_csv(save_file, index=False, float_format='%.4f')
+                print('\t: ', save_file)
             # print('\n')            
 
-def get_abs_path(path):
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), path))
+# def get_abs_path(path): 
+#     return os.path.abspath(os.path.join(os.path.dirname(__file__), path)) 
 
 def main():
     parser = argparse.ArgumentParser(description='Compute TCGA features from SimCLR embedder')
@@ -189,32 +197,41 @@ def main():
             else:
                 raise ValueError('Please use batch normalization for ImageNet feature')
         else:
-            weight_path = get_abs_path(os.path.join('simclr', 'runs', args.weights_high, 'checkpoints', 'model.pth'))
-            state_dict_weights = torch.load(weight_path, weights_only=True)
-            for i in range(4):
-                state_dict_weights.popitem()
-            state_dict_init = i_classifier_h.state_dict()
-            new_state_dict = OrderedDict()
-            for (k, v), (k_0, v_0) in zip(state_dict_weights.items(), state_dict_init.items()):
-                name = k_0
-                new_state_dict[name] = v
-            i_classifier_h.load_state_dict(new_state_dict, strict=False)
-            os.makedirs(get_abs_path(os.path.join('embedder', args.dataset)), exist_ok=True)
-            torch.save(new_state_dict, get_abs_path(os.path.join('embedder', args.dataset, 'embedder-high.pth')))
+            # 1) load pretrained weights for high magnification
+            for m in ['high', 'low']:
+                weight_path = path.get_simclr_chkpt_path(args.weights_high if m=='high' else args.weights_low)
+                print(f'Use pretrained features: {weight_path}')
+                # get_abs_path(os.path.join('simclr', 'runs', args.weights_high, 'checkpoints', 'model.pth'))
+                state_dict_weights = torch.load(weight_path, weights_only=True)
+                for i in range(4):
+                    state_dict_weights.popitem()
+                state_dict_init = i_classifier_h.state_dict() if m=='high' else i_classifier_l.state_dict()
+                new_state_dict = OrderedDict()
+                for (k, v), (k_0, v_0) in zip(state_dict_weights.items(), state_dict_init.items()):
+                    name = k_0
+                    new_state_dict[name] = v
+                if m=='high':
+                    i_classifier_h.load_state_dict(new_state_dict, strict=False)
+                else:
+                    i_classifier_l.load_state_dict(new_state_dict, strict=False)
+                embedder_file = path.get_embedder_path(args.dataset, f'embedder-{m}.pth')
+                # os.makedirs(embedder_dir, exist_ok=True)
+                torch.save(new_state_dict, embedder_file)
 
-            weight_path = get_abs_path(os.path.join('simclr', 'runs', args.weights_low, 'checkpoints', 'model.pth'))
-            state_dict_weights = torch.load(weight_path, weights_only=True)
-            for i in range(4):
-                state_dict_weights.popitem()
-            state_dict_init = i_classifier_l.state_dict()
-            new_state_dict = OrderedDict()
-            for (k, v), (k_0, v_0) in zip(state_dict_weights.items(), state_dict_init.items()):
-                name = k_0
-                new_state_dict[name] = v
-            i_classifier_l.load_state_dict(new_state_dict, strict=False)
-            os.makedirs(get_abs_path(os.path.join('embedder', args.dataset)), exist_ok=True)
-            torch.save(new_state_dict, get_abs_path(os.path.join('embedder', args.dataset, 'embedder-low.pth')))
-            print(f'Use pretrained features: {weight_path}')
+            # # 2) load pretrained weights for low magnification
+            # weight_path = path.get_simclr_chkpt_path(args.weights_low) # get_abs_path(os.path.join('simclr', 'runs', args.weights_low, 'checkpoints', 'model.pth'))
+            # state_dict_weights = torch.load(weight_path, weights_only=True)
+            # for i in range(4):
+            #     state_dict_weights.popitem()
+            # state_dict_init = i_classifier_l.state_dict()
+            # new_state_dict = OrderedDict()
+            # for (k, v), (k_0, v_0) in zip(state_dict_weights.items(), state_dict_init.items()):
+            #     name = k_0
+            #     new_state_dict[name] = v
+            # i_classifier_l.load_state_dict(new_state_dict, strict=False)
+            # os.makedirs(get_abs_path(os.path.join('embedder', args.dataset)), exist_ok=True)
+            # torch.save(new_state_dict, get_abs_path(os.path.join('embedder', args.dataset, 'embedder-low.pth')))
+            
 
 
     elif args.magnification == 'single' or args.magnification == 'high' or args.magnification == 'low':  
@@ -226,10 +243,11 @@ def main():
             else:
                 print('Please use batch normalization for ImageNet feature')
         else:
-            if args.weights is not None:
-                weight_path = get_abs_path(os.path.join('simclr', 'runs', args.weights, 'checkpoints', 'model.pth'))
-            else:
-                weight_path = glob.glob('dsmil-wsi/simclr/runs/*/checkpoints/*.pth')[-1]
+            # if args.weights is not None:
+            weight_path = path.get_simclr_chkpt_path(args.weights) 
+                # get_abs_path(os.path.join('simclr', 'runs', args.weights, 'checkpoints', 'model.pth'))
+            # else:
+            #     weight_path = glob.glob('dsmil-wsi/simclr/runs/*/checkpoints/*.pth')[-1]
             state_dict_weights = torch.load(weight_path, weights_only=True)
             for i in range(4):
                 state_dict_weights.popitem()
@@ -239,36 +257,45 @@ def main():
                 name = k_0
                 new_state_dict[name] = v
             i_classifier.load_state_dict(new_state_dict, strict=False)
-            os.makedirs(get_abs_path(os.path.join('embedder', args.dataset)), exist_ok=True)
-            torch.save(new_state_dict, get_abs_path(os.path.join('embedder', args.dataset, 'embedder.pth')))
+            embedder_file = path.get_embedder_path(args.dataset, 'embedder.pth')
+            # os.makedirs(embedder_dir, exist_ok=True)
+            torch.save(new_state_dict, embedder_file)
             print(f'Use pretrained features: {weight_path}')
     
     if args.magnification == 'tree' or args.magnification == 'low' or args.magnification == 'high' :
-        bags_path = get_abs_path(os.path.join('..', 'datasets', args.dataset, 'pyramid', '*', '*'))
+        bags_path = path.get_patch_dir(args.dataset, 'pyramid') + '*/*'
+        # bags_path = get_abs_path(os.path.join('..', 'datasets', args.dataset, 'pyramid', '*', '*'))
     else:
-        bags_path = get_abs_path(os.path.join('..', 'datasets', args.dataset, 'single', '*', '*'))
-    feats_path = get_abs_path(os.path.join('datasets', args.dataset))
-    print('bags_path:', os.path.abspath(bags_path), 'feats_path:', os.path.abspath(feats_path))
-        
-    os.makedirs(feats_path, exist_ok=True)
+        bags_path = path.get_patch_dir(args.dataset, 'single') + '*/*'
+        # bags_path = get_abs_path(os.path.join('..', 'datasets', args.dataset, 'single', '*', '*'))
+    feats_path = path.get_feature_dir(args.dataset) # get_abs_path(os.path.join('datasets', args.dataset))
+    print('bags_path:', bags_path, 'feats_path:', feats_path)
+    
+    # remove existing folders
+    shutil.rmtree(feats_path, ignore_errors=True)    
+    os.makedirs(feats_path)
     bags_list = glob.glob(bags_path)
     
     if args.magnification == 'tree':
         compute_tree_feats(args, bags_list, i_classifier_l, i_classifier_h, feats_path)
     else:
         compute_feats(args, bags_list, i_classifier, feats_path, args.magnification)
-    n_classes = glob.glob(get_abs_path(os.path.join('datasets', args.dataset, '*'+os.path.sep)))
-    n_classes = sorted(n_classes)
+    class_dirs = sorted(glob.glob(os.path.join(feats_path, '*/'))) # dsml-wsi/datasets/acrobat/*/
+    # get_abs_path(os.path.join('datasets', args.dataset, '*'+os.path.sep)))
+    # class_dirs = sorted(class_dirs)
     all_df = []
-    for i, item in enumerate(n_classes):
-        bag_csvs = glob.glob(get_abs_path(os.path.join(item, '*.csv')))
+    for i, class_dir in enumerate(class_dirs):
+        label = class_dir.split(os.path.sep)[-2]
+        bag_csvs = glob.glob(os.path.join(class_dir, '*.csv'))
         bag_df = pd.DataFrame(bag_csvs)
-        bag_df['label'] = i
-        bag_df.to_csv(get_abs_path(os.path.join('datasets', args.dataset, item.split(os.path.sep)[2]+'.csv')), index=False) # dsmil-wsi/datasets/acrobat/{label}.csv
+        bag_df['label'] = i 
+        csv_file = os.path.join(class_dir, label+'.csv')
+        bag_df.to_csv(csv_file, index=False) # dsmil-wsi/datasets/acrobat/{label}/{label}.csv
         all_df.append(bag_df)
     bags_path = pd.concat(all_df, axis=0, ignore_index=True)
     bags_path = shuffle(bags_path)
-    bags_path.to_csv(get_abs_path(os.path.join('datasets', args.dataset, args.dataset+'.csv')), index=False) # dsmil-wsi/datasets/acrobat/acrobat.csv
+    csv_file = os.path.join(feats_path, args.dataset+'.csv')
+    bags_path.to_csv(csv_file, index=False) # dsmil-wsi/datasets/acrobat/acrobat.csv : aggregated all (csv_file_path, label) pairs
     
 if __name__ == '__main__':
     main()

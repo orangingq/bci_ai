@@ -8,8 +8,9 @@ from PIL import Image, ImageFile
 from tqdm import tqdm
 import random
 import torchvision.transforms.v2 as v2
+from utils import path 
 
-data_dir = os.path.dirname(os.path.abspath(__file__))
+data_dir = path.get_data_dir('acrobat')
 
 # https://github.com/adamtupper/medical-image-augmentation/blob/main/individual_effects.py
 AUGMENTATIONS = {
@@ -68,59 +69,6 @@ def transform(image_size, aug_level, crop=False):
         + [v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])]
     )
 
-
-class HEDataset(Dataset):
-    '''HE Image dataset for Segmentation'''
-    HER2_LEVELS = {
-        'neg': 0,
-        '1': 1,
-        '2': 2,
-        '3': 3, 
-        'tissue': 4 # class added : tissue region
-    }
-    def __init__(self, type='train', image_size=224, aug_level=0):
-        self.HER2data = []
-        self.HEdata = []
-        self.labels = []
-        self.numbers = [] # patient number
-        self.type = type # train or test
-        self.aug_level = aug_level if type == 'train' else 0
-        self.image_size = image_size
-        if os.path.exists(os.path.join(data_dir, 'single')):
-            data_subdir = os.path.join(data_dir, 'single')
-        elif os.path.exists(os.path.join(data_dir, 'pyramid')):
-            data_subdir = os.path.join(data_dir, 'pyramid')
-        else:
-            raise FileNotFoundError('No dataset found. Dataset should be in "single" or "pyramid" directory')
-        self.filenames = sorted(glob.glob(os.path.join(data_subdir, f'*/*/*.jpeg')))
-
-        ImageFile.LOAD_TRUNCATED_IMAGES = True
-        
-        for file_name in tqdm(self.filenames, desc=f'Loading {type} dataset'):
-            file_name_list = file_name.rstrip('.jpeg').split(os.sep) # data_dir/{single, pyramid}/{label}/{{number}_HE_{type}}/{{row}_{col}}.jpeg
-            label, name = file_name_list[-3], file_name_list[-2]
-            number, img_type, type = name.split('_')
-            assert type == self.type, f'Invalid type: {type} from the target type: {self.type}'
-            file_path = os.path.join(data_subdir, file_name)
-            image = Image.open(file_path) # 1024 x 1024
-            if img_type == 'HE':
-                self.HEdata.append(image)
-            else:
-                # print(f'{file_name} - Invalid image type: {img_type}. Only HE image is allowed')
-                continue
-            self.numbers.append(number)
-
-    def __len__(self):
-        return len(self.numbers)
-
-    def __getitem__(self, idx):
-        t1 = transform(self.image_size, self.aug_level)
-        t2 = transform(self.image_size, self.aug_level, crop=True)
-        HEdata = t1(self.HEdata[idx])
-        HEdata2 = t2(self.HEdata[idx])
-        sample = {'HE': HEdata, 'HE2': HEdata2, 'number': self.numbers[idx], 'filename': self.filenames[idx]}
-        return sample
-
 class ACROBAT(Dataset):
     '''Original ACROBAT dataset for Classification'''
     HER2_LEVELS = {
@@ -130,38 +78,32 @@ class ACROBAT(Dataset):
         '3': 3, 
         'tissue': 4 # class added : tissue region
     }
-    def __init__(self, type='train', image_size=224, aug_level=0):
+    def __init__(self, type='train', image_size=224, aug_level=0, magnification='high'):
         self.HER2data = []
-        self.HEdata = []
         self.labels = []
         self.numbers = [] # patient number
         self.type = type # train or test
         self.aug_level = aug_level if type == 'train' else 0
         self.image_size = image_size
-        if os.path.exists(os.path.join(data_dir, 'single')):
-            data_subdir = os.path.join(data_dir, 'single')
-        elif os.path.exists(os.path.join(data_dir, 'pyramid')):
-            data_subdir = os.path.join(data_dir, 'pyramid')
+        if magnification == 'high':
+            file_paths = os.path.join(path.get_patch_dir(type='pyramid'), f'*/*_HER2_{type}/*/*.jpeg')
         else:
-            raise FileNotFoundError('No dataset found. Dataset should be in "single" or "pyramid" directory')
-        self.file_list = sorted(glob.glob(os.path.join(data_subdir, f'*/*/*.jpeg')))
+            file_paths = os.path.join(path.get_patch_dir(type='pyramid'), f'*/*_HER2_{type}/*.jpeg')
+        print('raw data path:', file_paths)
+        self.HER2_file_list = sorted(glob.glob(file_paths))
+        assert len(self.HER2_file_list) > 0, 'HER2 file list is empty'
 
         ImageFile.LOAD_TRUNCATED_IMAGES = True
         
-        for file_name in tqdm(self.file_list, desc=f'Loading {type} dataset'):
-            file_name_list = file_name.rstrip('.jpeg').split(os.sep) # data_dir/{single, pyramid}/{label}/{{number}_{img_type}_{type}}/{{row}_{col}}.jpeg
-            label, name = file_name_list[-3], file_name_list[-2]
-            number, img_type, type = name.split('_')
-            assert type == self.type, f'Invalid type: {type} from the target type: {self.type}'
-            file_path = os.path.join(data_subdir, file_name)
-            image = Image.open(file_path) # 1024 x 1024
-            if img_type == 'HE':
-                self.HEdata.append(image)
-            elif img_type == 'HER2':
-                self.HER2data.append(image)
+        for HER2_path in tqdm(self.HER2_file_list, desc=f'Loading {type} dataset'):
+            HER2_path_split = HER2_path.rstrip('.jpeg').split(os.sep) 
+            if magnification == 'high':
+                label, name = HER2_path_split[-4], HER2_path_split[-3] # {data_dir}/{single or pyramid}/{label}/{{number}_{img_type}_{type}}/{{row}_{col}}/{{row}_{col}}.jpeg
             else:
-                print(f'{file_name} - Invalid image type: {img_type}. Choose from [HE, HER2]')
-                continue
+                label, name = HER2_path_split[-3], HER2_path_split[-2] # {data_dir}/{single or pyramid}/{label}/{{number}_{img_type}_{type}}/{{row}_{col}}.jpeg
+            number, _, _ = name.split('_')
+            image = Image.open(HER2_path) # 224 x 224
+            self.HER2data.append(image)
             self.labels.append(self.HER2_LEVELS[label])
             self.numbers.append(number)
 
@@ -170,13 +112,11 @@ class ACROBAT(Dataset):
 
     def __getitem__(self, idx):
         t = transform(self.image_size, self.aug_level)
-        HEdata = t(self.HEdata[idx])
         HER2data = t(self.HER2data[idx])
-        sample = {'HE': HEdata, 'IHC':HER2data, 'label': self.labels[idx]}
+        sample = {'IHC':HER2data, 'label': self.labels[idx]}
         return sample
 
     
-
 def get_acrobat_dataloaders(type='classification', 
                             batch_size=32, 
                             num_workers=4, 
@@ -193,15 +133,11 @@ def get_acrobat_dataloaders(type='classification',
         dataloaders : dataloaders for train, validation, test
     '''
     if type == 'classification':
-        train_dataset = ACROBAT(type='train', image_size=image_size, aug_level=aug_level)
-        test_dataset = ACROBAT(type='valid', image_size=image_size)
+        train_dataset = ACROBAT(type='train', image_size=image_size, aug_level=aug_level, magnification='high')
+        test_dataset = ACROBAT(type='val', image_size=image_size, magnification='high')
         train_shuffle = True
-    elif type == 'segmentation':
-        train_dataset = HEDataset(type='train', image_size=image_size)
-        test_dataset = HEDataset(type='valid', image_size=image_size)
-        train_shuffle = False
     else:
-        raise ValueError(f'Invalid type: {type}. Choose from [classification, segmentation]')
+        raise ValueError(f'Invalid type: {type}. Only classification is supported.')
     
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=train_shuffle, num_workers=num_workers)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)

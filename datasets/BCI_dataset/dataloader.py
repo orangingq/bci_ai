@@ -7,8 +7,9 @@ from PIL import Image, ImageFile
 from tqdm import tqdm
 import random
 import torchvision.transforms.v2 as v2
+from utils import path
 
-data_dir = os.path.dirname(os.path.abspath(__file__))
+data_dir = path.get_data_dir('BCI_dataset')
 
 # https://github.com/adamtupper/medical-image-augmentation/blob/main/individual_effects.py
 AUGMENTATIONS = {
