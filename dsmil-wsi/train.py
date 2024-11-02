@@ -1,22 +1,27 @@
+import shutil
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
-from torch.autograd import Variable
-import torchvision.transforms.functional as VF
-from torchvision import transforms
-
-import sys, argparse, os, copy, itertools, glob, datetime
+# from torch.utils.data import DataLoader
+# from torch.autograd import Variable
+# import torchvision.transforms.functional as VF
+# from torchvision import transforms
+import tifffile as tiff
+import sys, argparse, os, copy, glob, datetime # , itertools
 import pandas as pd
 import numpy as np
 from scipy.stats import mode
 from sklearn.utils import shuffle
 from sklearn.metrics import roc_curve, roc_auc_score, balanced_accuracy_score, accuracy_score, hamming_loss
 from sklearn.model_selection import KFold
-from collections import OrderedDict
+# from collections import OrderedDict
 import json
 from tqdm import tqdm
 
+from utils import path
+from . import dsmil as mil
+
 def get_bag_feats(csv_file_df, args):
+    '''Get the bag features and label from the csv file'''
     if args.dataset == 'TCGA-lung-default':
         feats_csv_path = 'datasets/tcga-dataset/tcga_lung_data_feats/' + csv_file_df.iloc[0].split('/')[1] + '.csv'
     else:
@@ -34,23 +39,23 @@ def get_bag_feats(csv_file_df, args):
         
     return label, feats, feats_csv_path
 
-def generate_pt_files(args, df):
-    temp_train_dir = "dsmil-wsi/temp_train"
-    if os.path.exists(temp_train_dir) and len(os.listdir(temp_train_dir)) > 0:
-        print('Intermediate training files already exist. Skipping creation.')
+def generate_pt_files(args, df, type):
+    temp_dir = f"dsmil-wsi/temp_{type}"
+    shutil.rmtree(temp_dir, ignore_errors=True)
+    if os.path.exists(temp_dir) and len(os.listdir(temp_dir)) > 0:
+        print(f'Intermediate {type}ing files already exist : {temp_dir}. Skipping creation.')
         return
-        # import shutil
-        # shutil.rmtree(temp_train_dir, ignore_errors=True)
-    os.makedirs(temp_train_dir, exist_ok=True)
-    print('Creating intermediate training files.')
+    os.makedirs(temp_dir, exist_ok=True)
+    print(f'Creating intermediate {type}ing files : {temp_dir}')
     for i in tqdm(range(len(df))):
         label, feats, feats_csv_path = get_bag_feats(df.iloc[i], args)
         bag_label = torch.tensor(np.array([label]), dtype=torch.float32)
+        assert bag_label.sum() == 1 and bag_label.size(1)==4, f"bag_label.sum() = {bag_label.sum()}"
         bag_feats = torch.tensor(np.array(feats), dtype=torch.float32)
         repeated_label = bag_label.repeat(bag_feats.size(0), 1)
         stacked_data = torch.cat((bag_feats, repeated_label), dim=1)
         # Save the stacked data into a .pt file
-        pt_file_path = os.path.join(temp_train_dir, os.path.splitext(feats_csv_path)[0].split(os.sep)[-1] + ".pt")
+        pt_file_path = os.path.join(temp_dir, os.path.splitext(feats_csv_path)[0].split(os.sep)[-1] + ".pt")
         torch.save(stacked_data, pt_file_path)
     return
 
@@ -66,7 +71,11 @@ def train(args, train_df, milnet, criterion, optimizer):
         bag_feats = stacked_data[:, :args.feats_size].clone().detach()
         bag_feats = dropout_patches(bag_feats, 1-args.dropout_patch)
         bag_feats = bag_feats.view(-1, args.feats_size)
+        assert bag_feats is not None, f"bag_feats is None"
         ins_prediction, bag_prediction, _, _ = milnet(bag_feats)
+        if bag_prediction.isnan().any():
+            print(f"bag_prediction contains {torch.isnan(bag_prediction).sum()} NaN elements")
+            # torch.nan_to_num(bag_prediction, nan=0.0)
         max_prediction, _ = torch.max(ins_prediction, 0)        
         bag_loss = criterion(bag_prediction.view(1, -1), bag_label.view(1, -1))
         max_loss = criterion(max_prediction.view(1, -1), bag_label.view(1, -1))
@@ -74,7 +83,8 @@ def train(args, train_df, milnet, criterion, optimizer):
         loss.backward()
         optimizer.step()
         total_loss = total_loss + loss.item()
-        sys.stdout.write('\r Training bag [%d/%d] bag loss: %.4f' % (i, len(train_df), loss.item()))
+        if i % 10 == 0:
+            sys.stdout.write('\r Training bag [%d/%d] bag loss: %.4f' % (i+1, len(train_df), loss.item()))
     return total_loss / len(train_df)
 
 def dropout_patches(feats, p):
@@ -98,7 +108,8 @@ def test(args, test_df, milnet, criterion, thresholds=None, return_predictions=F
             bag_feats = bag_feats.view(-1, args.feats_size)
             bag_feats = torch.nan_to_num(bag_feats, nan=0.0)
             assert not torch.isnan(bag_feats).any(), f"bag_feats contains {torch.isnan(bag_feats).sum()} NaN elements"
-            ins_prediction, bag_prediction, _, _ = milnet(bag_feats)
+            ins_prediction, bag_prediction, A, _ = milnet(bag_feats)
+
             if torch.isnan(ins_prediction).any():
                 print(f"ins_prediction contains {torch.isnan(ins_prediction).sum()} NaN elements")
                 torch.nan_to_num(ins_prediction, nan=0.0)
@@ -107,7 +118,7 @@ def test(args, test_df, milnet, criterion, thresholds=None, return_predictions=F
             max_loss = criterion(max_prediction.view(1, -1), bag_label.view(1, -1))
             loss = 0.5*bag_loss + 0.5*max_loss
             total_loss = total_loss + loss.item()
-            sys.stdout.write('\r Testing bag [%d/%d] bag loss: %.4f' % (i, len(test_df), loss.item()))
+            sys.stdout.write('\r Testing bag [%d/%d] bag loss: %.4f' % (i+1, len(test_df), loss.item()))
             test_labels.extend([bag_label.squeeze().cpu().numpy().astype(int)])
             if args.average:
                 test_predictions.extend([(torch.sigmoid(max_prediction)+torch.sigmoid(bag_prediction)).squeeze().cpu().numpy()])
@@ -124,24 +135,28 @@ def test(args, test_df, milnet, criterion, thresholds=None, return_predictions=F
         test_labels = np.squeeze(test_labels)
     else:        
         # CSH - only one true label per bag
-        test_predictions = test_predictions.argmax(axis=1)
+        test_predictions = test_predictions.argmax(axis=1) 
         test_labels = test_labels.argmax(axis=1)
         assert test_labels.max() < args.num_classes, f"test_labels.max() = {test_labels.max()} >= args.num_classes = {args.num_classes}"
         assert test_predictions.max() < args.num_classes, f"test_predictions.max() = {test_predictions.max()} >= args.num_classes = {args.num_classes}"
-        # for i in range(args.num_classes):
-        #     class_prediction_bag = copy.deepcopy(test_predictions[:, i])
-        #     class_prediction_bag[test_predictions[:, i]>=thresholds_optimal[i]] = 1
-        #     class_prediction_bag[test_predictions[:, i]<thresholds_optimal[i]] = 0
-        #     test_predictions[:, i] = class_prediction_bag
-    bag_score = (test_labels == test_predictions).sum()
-    # bag_score = 0
-    # for i in range(0, len(test_df)):
-    #     bag_score = np.array_equal(test_labels[i], test_predictions[i]) + bag_score         
+    bag_score = (test_labels == test_predictions).sum()     
     avg_score = bag_score / len(test_df)
-    print(f"\tAverage ACC\t: {avg_score:.4f}")
     
+
+            
+    # label_name = ['1', '2', '3', 'neg']
+    # label = label_name[bag_label.argmax()]
+    # type = test_df[0].split(os.sep)[-2].split('_')[1]
+    # dir = os.path.join(path.get_patch_dir(type=f'pyramid_{type}'), label, item.split(os.sep)[-1].split('.')[0])
+    # # wsi_img = path.get_data_dir('acrobat') + f'/{label}/' + item.split(os.sep)[-1].split('.')[0] + '.tif'
+    # pos_arr = [name.split(os.sep)[-1].rstrip('.jpeg').split('_') for name in glob.glob(dir + '/*/*.jpeg')]
+    # pos_arr  = [[int(row), int(col)] for [row, col] in pos_arr]
+    # draw(args, dir, bag_prediction, pos_arr, A, thresholds_optimal) # CSH
+            
+
     if return_predictions:
         return total_loss / len(test_df), avg_score, auc_value, thresholds_optimal, test_predictions, test_labels
+    
     return total_loss / len(test_df), avg_score, auc_value, thresholds_optimal
 
 def multi_label_roc(labels, predictions, num_classes, pos_label=1):
@@ -164,7 +179,7 @@ def multi_label_roc(labels, predictions, num_classes, pos_label=1):
         # c_auc = roc_auc_score(label, prediction)
         try:
             c_auc = roc_auc_score(label, prediction)
-            print(f"\t[{c}] ROC AUC\t: {c_auc:.4f}")
+            # print(f"\t[{c}] ROC AUC\t: {c_auc:.4f}")
         except ValueError as e:
             if str(e) == "Only one class present in y_true. ROC AUC score is not defined in that case.":
                 print("ROC AUC score is not defined when only one class is present in y_true. c_auc is set to 1.")
@@ -185,11 +200,11 @@ def optimal_thresh(fpr, tpr, thresholds, p=0):
 
 def print_epoch_info(epoch, args, train_loss_bag, test_loss_bag, avg_score, aucs):
     if args.dataset.startswith('TCGA-lung'):
-        print('\n\r Epoch [%d/%d] train loss: %.4f test loss: %.4f, average score: %.4f, auc_LUAD: %.4f, auc_LUSC: %.4f' % 
+        print('\n\r Epoch [%d/%d] train loss: %.4f test loss: %.4f, average Acc: %.4f, auc_LUAD: %.4f, auc_LUSC: %.4f' % 
                 (epoch, args.num_epochs, train_loss_bag, test_loss_bag, avg_score, aucs[0], aucs[1]))
     else:
-        print('\n\r Epoch [%d/%d] train loss: %.4f test loss: %.4f, average score: %.4f, AUC: ' % 
-                (epoch, args.num_epochs, train_loss_bag, test_loss_bag, avg_score) + '|'.join('class-{}>>{:.4f}'.format(*k) for k in enumerate(aucs))) 
+        print('\n\r Epoch [%d/%d] train loss: %.4f test loss: %.4f, average Acc: %.4f, \n\tAUC: ' % 
+                (epoch, args.num_epochs, train_loss_bag, test_loss_bag, avg_score) + '\t'.join('[class {}] {:.4f}'.format(*k) for k in enumerate(aucs))) 
 
 def get_current_score(avg_score, aucs):
     current_score = (sum(aucs) + avg_score)/2
@@ -206,40 +221,42 @@ def save_model(args, fold, run, save_path, model, thresholds_optimal):
 
 def print_save_message(args, save_name, thresholds_optimal):
     if args.dataset.startswith('TCGA-lung'):
-        print('Best model saved at: ' + save_name + ' Best thresholds: LUAD %.4f, LUSC %.4f' % (thresholds_optimal[0], thresholds_optimal[1]))
+        print('\tBest model saved at: ' + save_name + ' Best thresholds: LUAD %.4f, LUSC %.4f' % (thresholds_optimal[0], thresholds_optimal[1]))
     else:
-        print('Best model saved at: ' + save_name)
-        print('Best thresholds ===>>> '+ '|'.join('class-{}>>{:.4f}'.format(*k) for k in enumerate(thresholds_optimal)))
+        print('\tBest model saved at: ' + save_name)
+        print('\tBest thresholds -> '+ '\t'.join('[class {}] {:.4f}'.format(*k) for k in enumerate(thresholds_optimal)))
 
+def get_feats_size(bags_csv):
+    '''return the feature size of the bag features'''
+    df = pd.read_csv(bags_csv)
+    feats_csv_path = df.iloc[0]['0']
+    print(bags_csv, feats_csv_path)
+    df = pd.read_csv(feats_csv_path)
+    feats_size = len(df.columns)
+    return feats_size
+ 
 def main():
     parser = argparse.ArgumentParser(description='Train DSMIL on 20x patch features learned by SimCLR')
-    parser.add_argument('--num_classes', default=2, type=int, help='Number of output classes [2]')
-    parser.add_argument('--feats_size', default=512, type=int, help='Dimension of the feature size [512]')
+    parser.add_argument('--dataset', default='acrobat', type=str, help='Dataset folder name')
+    parser.add_argument('--num_classes', default=4, type=int, help='Number of output classes [4]')
     parser.add_argument('--lr', default=0.0001, type=float, help='Initial learning rate [0.0001]')
-    parser.add_argument('--num_epochs', default=50, type=int, help='Number of total training epochs [100]')
+    parser.add_argument('--num_epochs', default=10, type=int, help='Number of total training epochs [100]')
     parser.add_argument('--stop_epochs', default=10, type=int, help='Skip remaining epochs if training has not improved after N epochs [10]')
     parser.add_argument('--gpu_index', type=int, nargs='+', default=(0,), help='GPU ID(s) [0]')
     parser.add_argument('--weight_decay', default=1e-3, type=float, help='Weight decay [1e-3]')
-    parser.add_argument('--dataset', default='TCGA-lung-default', type=str, help='Dataset folder name')
+    parser.add_argument('--run_name', type=str, help='Run name')
     parser.add_argument('--split', default=0.2, type=float, help='Training/Validation split [0.2]')
-    parser.add_argument('--model', default='dsmil', type=str, help='MIL model [dsmil]')
     parser.add_argument('--dropout_patch', default=0, type=float, help='Patch dropout rate [0]')
     parser.add_argument('--dropout_node', default=0, type=float, help='Bag classifier dropout rate [0]')
-    parser.add_argument('--non_linearity', default=1, type=float, help='Additional nonlinear operation [0]')
+    parser.add_argument('--non_linearity', default=1, type=float, help='Additional nonlinear operation [1]')
     parser.add_argument('--average', type=bool, default=False, help='Average the score of max-pooling and bag aggregating')
-    parser.add_argument('--eval_scheme', default='5-fold-cv', type=str, help='Evaluation scheme [5-fold-cv | 5-fold-cv-standalone-test | 5-time-train+valid+test ]')
+    parser.add_argument('--eval_scheme', default='5-fold-cv-standalone-test', type=str, help='Evaluation scheme [ 5-fold-cv | 5-fold-cv-standalone-test | 5-time-train+valid+test ]')
 
-    
     args = parser.parse_args()
     print(args.eval_scheme)
 
     gpu_ids = tuple(args.gpu_index)
     os.environ['CUDA_VISIBLE_DEVICES']=','.join(str(x) for x in gpu_ids)
-    
-    if args.model == 'dsmil':
-        import dsmil as mil
-    elif args.model == 'abmil':
-        import abmil as mil
 
     def apply_sparse_init(m):
         if isinstance(m, (nn.Linear, nn.Conv2d, nn.Conv1d)):
@@ -248,6 +265,7 @@ def main():
                 nn.init.constant_(m.bias, 0)
 
     def init_model(args):
+        # features are already extracted, so only need FC layer for instance classifier
         i_classifier = mil.FCLayer(in_size=args.feats_size, out_size=args.num_classes).cuda()
         b_classifier = mil.BClassifier(input_size=args.feats_size, output_class=args.num_classes, dropout_v=args.dropout_node, nonlinear=args.non_linearity).cuda()
         milnet = mil.MILNet(i_classifier, b_classifier).cuda()
@@ -261,12 +279,12 @@ def main():
     if args.dataset == 'TCGA-lung-default':
         bags_csv = 'datasets/tcga-dataset/TCGA.csv'
     else:
-        bags_csv = os.path.join(current_path, 'datasets', args.dataset, args.dataset+'.csv')
-
-    generate_pt_files(args, pd.read_csv(bags_csv))
- 
+        bags_csv = os.path.join(path.get_feature_dir(args.dataset, args.run_name, 'train'), args.dataset+'.csv') # '.../acrobat.csv'
+    args.feats_size = get_feats_size(bags_csv)
+    generate_pt_files(args, pd.read_csv(bags_csv), type='train')
+    
     if args.eval_scheme == '5-fold-cv':
-        bags_path = glob.glob('dsmil-wsi/temp_train/*.pt')
+        train_bags_path = glob.glob('dsmil-wsi/temp_train/*.pt')
         # bags_path = bags_path.sample(n=200)
         kf = KFold(n_splits=5, shuffle=True, random_state=2024)
         fold_results = []
@@ -275,11 +293,15 @@ def main():
         os.makedirs(save_path, exist_ok=True)
         run = len(glob.glob(os.path.join(save_path, '*.pth')))
 
-        for fold, (train_index, test_index) in enumerate(kf.split(bags_path)):
+        stacked_data_example = torch.load(train_bags_path[0], map_location='cuda:0', weights_only=True)
+        args.feats_size = stacked_data_example.size(1) - args.num_classes
+            
+        for fold, (train_index, valid_index) in enumerate(kf.split(train_bags_path)):
             print(f"Starting CV fold {fold}.")
+            train_path = [train_bags_path[i] for i in train_index]
+            val_path = [train_bags_path[i] for i in valid_index]
             milnet, criterion, optimizer, scheduler = init_model(args)
-            train_path = [bags_path[i] for i in train_index]
-            test_path = [bags_path[i] for i in test_index]
+            
             fold_best_score = 0
             best_ac = 0
             best_auc = 0
@@ -288,7 +310,7 @@ def main():
             for epoch in range(1, args.num_epochs+1):
                 counter += 1
                 train_loss_bag = train(args, train_path, milnet, criterion, optimizer) # iterate all bags
-                test_loss_bag, avg_score, aucs, thresholds_optimal = test(args, test_path, milnet, criterion)
+                test_loss_bag, avg_score, aucs, thresholds_optimal = test(args, val_path, milnet, criterion)
                 
                 print_epoch_info(epoch, args, train_loss_bag, test_loss_bag, avg_score, aucs)
                 scheduler.step()
@@ -311,7 +333,7 @@ def main():
 
 
     elif args.eval_scheme == '5-time-train+valid+test':
-        bags_path = glob.glob('dsmil-wsi/temp_train/*.pt')
+        train_bags_path = glob.glob('dsmil-wsi/temp_train/*.pt')
         # bags_path = bags_path.sample(n=50, random_state=42)
         fold_results = []
 
@@ -323,14 +345,14 @@ def main():
             print(f"Starting iteration {iteration + 1}.")
             milnet, criterion, optimizer, scheduler = init_model(args)
 
-            bags_path = shuffle(bags_path)
-            total_samples = len(bags_path)
+            train_bags_path = shuffle(train_bags_path)
+            total_samples = len(train_bags_path)
             train_end = int(total_samples * (1-args.split-0.1))
             val_end = train_end + int(total_samples * 0.1)
 
-            train_path = bags_path[:train_end]
-            val_path = bags_path[train_end:val_end]
-            test_path = bags_path[val_end:]
+            train_path = train_bags_path[:train_end]
+            val_path = train_bags_path[train_end:val_end]
+            val_path = train_bags_path[val_end:]
 
             fold_best_score = 0
             best_ac = 0
@@ -354,7 +376,7 @@ def main():
                     save_model(args, iteration, run, save_path, milnet, thresholds_optimal)
                     best_model = copy.deepcopy(milnet)
                 if counter > args.stop_epochs: break
-            test_loss_bag, avg_score, aucs, thresholds_optimal = test(test_path, best_model, criterion, args)
+            test_loss_bag, avg_score, aucs, thresholds_optimal = test(val_path, best_model, criterion, args)
             fold_results.append((best_ac, best_auc))
         mean_ac = np.mean(np.array([i[0] for i in fold_results]))
         mean_auc = np.mean(np.array([i[1] for i in fold_results]), axis=0)
@@ -364,10 +386,14 @@ def main():
             print(f"Class {i}: Mean AUC = {mean_score:.4f}")
 
     if args.eval_scheme == '5-fold-cv-standalone-test':
-        bags_path = glob.glob('dsmil-wsi/temp_train/*.pt')
-        bags_path = shuffle(bags_path)
-        reserved_testing_bags = bags_path[:int(args.split*len(bags_path))]
-        bags_path = bags_path[int(args.split*len(bags_path)):]
+        train_bags_path = shuffle(glob.glob('dsmil-wsi/temp_train/*.pt'))
+        if args.dataset == 'acrobat':
+            bags_csv = os.path.join(path.get_feature_dir(args.dataset, args.run_name, 'test'), args.dataset+'.csv') # '.../acrobat.csv'
+            generate_pt_files(args, pd.read_csv(bags_csv), type='test')
+            test_bags_path = glob.glob('dsmil-wsi/temp_test/*.pt')
+        else: # split the training set into training and test set
+            test_bags_path = train_bags_path[:int(args.split*len(train_bags_path))]
+            train_bags_path = train_bags_path[int(args.split*len(train_bags_path)):]
         kf = KFold(n_splits=5, shuffle=True, random_state=42)
         fold_results = []
         fold_models = []
@@ -376,11 +402,11 @@ def main():
         os.makedirs(save_path, exist_ok=True)
         run = len(glob.glob(os.path.join(save_path, '*.pth')))
 
-        for fold, (train_index, test_index) in enumerate(kf.split(bags_path)):
+        for fold, (train_index, valid_index) in enumerate(kf.split(train_bags_path)):
             print(f"Starting CV fold {fold}.")
             milnet, criterion, optimizer, scheduler = init_model(args)
-            train_path = [bags_path[i] for i in train_index]
-            test_path = [bags_path[i] for i in test_index]
+            train_path = [train_bags_path[i] for i in train_index]
+            val_path = [train_bags_path[i] for i in valid_index]
             fold_best_score = 0
             best_ac = 0
             best_auc = 0
@@ -390,7 +416,7 @@ def main():
             for epoch in range(1, args.num_epochs+1):
                 counter += 1
                 train_loss_bag = train(args, train_path, milnet, criterion, optimizer) # iterate all bags
-                test_loss_bag, avg_score, aucs, thresholds_optimal = test(args, test_path, milnet, criterion)
+                test_loss_bag, avg_score, aucs, thresholds_optimal = test(args, val_path, milnet, criterion)
                 
                 print_epoch_info(epoch, args, train_loss_bag, test_loss_bag, avg_score, aucs)
                 scheduler.step()
@@ -412,11 +438,11 @@ def main():
         for item in fold_models:
             best_model = item[0]
             optimal_thresh = item[1]
-            test_loss_bag, avg_score, aucs, thresholds_optimal, test_predictions, test_labels = test(args, reserved_testing_bags, best_model.cuda(), criterion, thresholds=optimal_thresh, return_predictions=True)
+            test_loss_bag, avg_score, aucs, thresholds_optimal, test_predictions, test_labels = test(args, test_bags_path, best_model.cuda(), criterion, thresholds=optimal_thresh, return_predictions=True)
             fold_predictions.append(test_predictions)
         predictions_stack = np.stack(fold_predictions, axis=0)
         mode_result = mode(predictions_stack, axis=0)
-        combined_predictions = mode_result.mode[0]
+        combined_predictions = mode_result.mode# [0]
         combined_predictions = combined_predictions.squeeze()
 
         if args.num_classes > 1:
@@ -432,15 +458,15 @@ def main():
             balanced_accuracy = balanced_accuracy_score(test_labels, combined_predictions)
             print("Balanced Accuracy:", balanced_accuracy)
 
-        os.makedirs('test', exist_ok=True)
-        with open("test/test_list.json", "w") as file:
-            json.dump(reserved_testing_bags, file)
+        test_path = path.get_test_path(run_name=args.run_name, make=True)
+        with open(f"{test_path}/test_list.json", "w") as file:
+            json.dump(test_bags_path, file)
 
         for i, item in enumerate(fold_models):
             best_model = item[0]
             optimal_thresh = item[1]
-            torch.save(best_model.state_dict(), f"test/mil_weights_fold_{i}.pth")
-            with open(f"test/mil_threshold_fold_{i}.json", "w") as file:
+            torch.save(best_model.state_dict(), f"{test_path}/mil_weights_fold_{i}.pth")
+            with open(f"{test_path}/mil_threshold_fold_{i}.json", "w") as file:
                 optimal_thresh = [float(i) for i in optimal_thresh]
                 json.dump(optimal_thresh, file)
                 

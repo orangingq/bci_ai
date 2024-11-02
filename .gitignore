@@ -7,7 +7,7 @@
 *.pt
 *.zip
 *.csv
-
+*.sh
 
 # cache
 .vscode
@@ -26,6 +26,7 @@ dsmil-wsi/simclr/runs
 dsmil-wsi/simclr/all_patches.csv
 dsmil-wsi/test/
 dsmil-wsi/temp_train
+dsmil-wsi/temp_test
 dsmil-wsi/weights/
 dsmil-wsi/.ipynb_checkpoints
 dsmil-wsi/.ipynb_checkpoints/

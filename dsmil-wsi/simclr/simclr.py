@@ -31,10 +31,10 @@ def _save_config_file(model_checkpoints_folder):
 
 class SimCLR(object):
 
-    def __init__(self, dataset, config):
+    def __init__(self, dataset, config, log_dir=None):
         self.config = config
         self.device = self._get_device()
-        self.writer = SummaryWriter()
+        self.writer = SummaryWriter(log_dir=os.path.join('runs', log_dir))
         self.dataset = dataset
         self.nt_xent_criterion = NTXentLoss(self.device, config['batch_size'], **config['loss'])
 
@@ -71,14 +71,9 @@ class SimCLR(object):
             
 
         optimizer = torch.optim.Adam(model.parameters(), 1e-5, weight_decay=eval(self.config['weight_decay']))
-
-#         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=len(train_loader), eta_min=0,
-#                                                                last_epoch=-1)
-        
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.config['epochs'], eta_min=0,
                                                                last_epoch=-1)
         
-
         if apex_support and self.config['fp16_precision']:
             model, optimizer = amp.initialize(model, optimizer,
                                               opt_level='O2',
@@ -135,7 +130,16 @@ class SimCLR(object):
     def _load_pre_trained_weights(self, model):
         try:
             checkpoints_folder = os.path.join('./runs', self.config['fine_tune_from'], 'checkpoints')
-            state_dict = torch.load(os.path.join(checkpoints_folder, 'model.pth'), weights_only=True)
+            print("Loading pre-trained weights from: ", checkpoints_folder)
+            filename = os.path.join(checkpoints_folder, 'model.pth')
+            if not os.path.exists(filename):
+                filename = os.path.join(checkpoints_folder, 'model.pth.tar')
+                state_dict = torch.load(filename, weights_only=True)['state_dict']
+                state_dict['backbone.fc.2.weight'] = state_dict['backbone.fc.2.weight'][:self.config['batch_size'], :]
+                state_dict['backbone.fc.2.bias'] = state_dict['backbone.fc.2.bias'][:self.config['batch_size']]
+                print('asdfasdf, ', state_dict['backbone.fc.2.weight'].shape)
+            else:
+                state_dict = torch.load(filename, weights_only=True)
             model.load_state_dict(state_dict)
             print("Loaded pre-trained model with success.")
         except FileNotFoundError:
@@ -161,3 +165,5 @@ class SimCLR(object):
             valid_loss /= counter
         model.train()
         return valid_loss
+
+

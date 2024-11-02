@@ -109,47 +109,107 @@ CUBLAS_WORKSPACE_CONFIG=:16:8 python -m main --finetune --optimizer_name=AdamW
 
 0. Create and activate Anaconda environment (`dsmil`)
 
-```bash
-# 콘다 가상환경 생성 ('dsmil')
-conda env create --file dsmil-wsi/env.yml
-# dsmil 가상환경 활성화
-conda activate dsmil
-```
+    ```bash
+    # 콘다 가상환경 생성 ('dsmil')
+    conda env create --file dsmil-wsi/env.yml
+    # dsmil 가상환경 활성화
+    conda activate dsmil
+    ```
 
 1. Place ACROBAT WSI files as `datasets\acrobat\[CATEGORY_NAME]\[SLIDE_NAME].tif`.
 2. Crop patches.
+    - **default setting** : 10x, 2.5x magnification (-m 1 3 -b 20 -d acrobat -v tif)
+      ```bash 
+      python -m dsmil-wsi.deepzoom_tiler --type=train 
+      python -m dsmil-wsi.deepzoom_tiler --type=test 
+      ```
+    - other options (ex. 10x magnification only)
+      ```bash
+      python -m dsmil-wsi.deepzoom_tiler -m 1 -b 20 -d acrobat -v tif 
+      ```
 
-```bash
-python dsmil-wsi/deepzoom_tiler.py -m 1 -b 20 -d acrobat -v tif # 10x magnification
-python dsmil-wsi/deepzoom_tiler.py -m 1 3 -b 20 -d acrobat -v tif # 10x, 2.5x magnification
-```
+3. Train a SimCLR embedder.
+    
+    Move to simclr directory first. (`cd dsmil-wsi/simclr`)
+    > `--level=high` for 10x magnification (higher mag.) images, `--level=low` for 2.5x magnification (lower mag.) images
 
-3. Train an embedder. 
-
-```bash
-cd dsmil-wsi/simclr
-# train SimCLR for 10x magnification images
-CUDA_VISIBLE_DEVICES=0 python run.py --dataset=acrobat --level=high --multiscale=1 --batch_size=256 --epoch=20
-# train SimCLR for 2.5x magnification images
-CUDA_VISIBLE_DEVICES=1 python run.py --dataset=acrobat --level=low --multiscale=1 --batch_size=256 --epoch=50
-```
+    - Backbone ResNet18, train from scratch
+      ```bash
+      python run.py --level=high --batch_size=256 --epoch=20 --log_dir=resnet18_scratch_high
+      python run.py --level=low --batch_size=256 --epoch=50 --log_dir=resnet18_scratch_low
+      ```
+    - Backbone ResNet34, train from scratch
+      ```bash
+      python run.py --level=high --batch_size=128 --epoch=10 --model=resnet34 --log_dir=resnet34_scratch_high
+      python run.py --level=low --batch_size=128 --epoch=20 --model=resnet34 --log_dir=resnet34_scratch_low
+      ```
+    - Backbone ResNet50, train from scratch
+      ```bash
+      python run.py --level=high --batch_size=128 --epoch=20 --model=resnet50 --log_dir=resnet50_scratch_high
+      python run.py --level=low --batch_size=128 --epoch=50 --model=resnet50 --log_dir=resnet50_scratch_low
+      ```
+    - Backbone ResNet50, use pretrained weights
+      ```bash
+      python run.py --level=high --batch_size=128 --epoch=20 --model=resnet50 --pretrained --log_dir=resnet50_finetune_high
+      python run.py --level=low --batch_size=128 --epoch=50 --model=resnet50 --pretrained --log_dir=resnet50_finetune_low
+      ```
 
 4. Compute features using the embedder.
 
-```bash
-cd ../.. # .../bci_ai
-# compute multi-scale 
-CUDA_VISIBLE_DEVICES=2 python dsmil-wsi/compute_feats.py --dataset=acrobat --num_classes=4 --weights_low=Oct24_15-24-58_dmserver4 --weights_high=Oct24_15-24-21_dmserver4 --magnification=tree
-# compute multi-scale with pretrained weights on ImageNet 
-CUDA_VISIBLE_DEVICES=2 python dsmil-wsi/compute_feats.py --dataset=acrobat --num_classes=4 --weights_low=ImageNet --weights_high=ImageNet --magnification=tree --norm_layer=batch 
-# compute features for 10x magnification
-CUDA_VISIBLE_DEVICES=2 python dsmil-wsi/compute_feats.py --dataset=acrobat --num_classes=4 --batch_size=64 --magnification=high --weights=Oct24_15-24-21_dmserver4
-# compute features for 2.5x magnification
-CUDA_VISIBLE_DEVICES=3 python dsmil-wsi/compute_feats.py --dataset=acrobat --num_classes=4 --batch_size=64 --magnification=low --weights=Oct24_15-24-58_dmserver4
-```
+    Move back to bci_ai folder. (`cd ../..`)
+
+- Case 0 : using SimCLR of ResNet18 as backbone & pretrained on ImageNet
+
+  - Final results:
+    - Mean Accuracy: 0.48175
+    - Mean AUC per Class (1,2,3,neg) = (0.5959, 0.6191, 0.7655, 0.5716)
+
+  ```bash
+  python -m dsmil-wsi.compute_feats --weights_low=ImageNet --weights_high=ImageNet --backbone=resnet18 --norm_layer=batch
+  ```
+
+- Case 1 : using SimCLR of ResNet50 as backbone & pretrained on ImageNet
+
+  - Final results:
+    - Mean Accuracy: 0.5071
+    - Mean AUC per Class (1,2,3,neg) = (0.5855, 0.5934, 0.8348, 0.5302)
+
+  ```bash
+  python -m dsmil-wsi.compute_feats --weights_low=ImageNet --weights_high=ImageNet --backbone=resnet50 --norm_layer=batch 
+  ```
+
+- Case 2 : using SimCLR of ResNet18 as backbone & trained from the scratch on ACROBAT
+
+  - Final results:
+    - Mean Accuracy: 0.5637
+    - Mean AUC per Class (1,2,3,neg) = (0.6292, 0.7237, 0.8934, 0.7728)
+
+  ```bash
+  python -m dsmil-wsi.compute_feats --weights_low=resnet18_scratch_low --weights_high=resnet18_scratch_high 
+  ```
+
+- Case 3 : using SimCLR of ResNet50 as backbone & trained from the scratch on ACROBAT
+
+  - Final results:
+    - Mean Accuracy:
+    - Mean AUC per Class (1,2,3,neg) =
+
+  ```bash
+  python -m dsmil-wsi.compute_feats --weights_low=resnet50_scratch_low --weights_high=resnet50_scratch_high --backbone=resnet50 {--norm_layer=batch}
+  ```
+
+- Case 4 : using SimCLR of ResNet50 as backbone & finetuned with ACROBAT based on ImageNet pretrained weights
+
+  - Final results:
+    - Mean Accuracy:0.46287
+    - Mean AUC per Class (1,2,3,neg) = (0.5801, 0.5845, 0.8186, 0.6009)
+
+  ```bash
+  python -m dsmil-wsi.compute_feats --weights_low=resnet50_finetune_low --weights_high=resnet50_finetune_high --backbone=resnet50 --norm_layer=batch
+  ```
 
 5. Training.
 
 ```bash
-CUDA_VISIBLE_DEVICES=2 CUBLAS_WORKSPACE_CONFIG=:16:8 python dsmil-wsi/train_tcga.py --dataset=acrobat --num_classes=4
+CUBLAS_WORKSPACE_CONFIG=:16:8 python dsmil-wsi/train_tcga.py --dataset=acrobat --num_classes=4
 ```

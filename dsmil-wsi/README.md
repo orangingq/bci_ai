@@ -44,16 +44,6 @@ Precomputed features for [Camelyon16 dataset](https://camelyon16.grand-challenge
 This dataset requires 30GB of free disk space.
 
 ## Training on default datasets.
-### MIL benchmark datasets
->Train DSMIL on standard MIL benchmark dataset:
-```
-  $ python train_mil.py
-```
->Switch between MIL benchmark dataset, use option:
- ```
- [--datasets]      # musk1, musk2, elephant, fox, tiger
- ```
->Other options are available for learning rate (--lr=0.0002), cross validation fold (--cv_fold=10), weight-decay (--weight_decay=5e-3), and number of epochs (--num_epoch=40).  
 ### WSI datasets 
 >Train DSMIL on TCGA Lung Cancer dataset (precomputed features):
  ```
@@ -108,101 +98,6 @@ TCGA Lung with a 5-fold cross-validation and a standalone test set.
 [--dropout_node]      # Randomly dropout a portion of nodes in the value vector generation network during training [0]
 ```
 
-## Testing and generating detection maps from WSI
-### TCGA dataset
->Download some testing slides:  
-```
-  $ python download.py --dataset=tcga-test
-```
->You might need to unzip the [file](https://uwmadison.box.com/shared/static/q4d9fr93wmllf1navjf2ghc9b0pmzf2a.zip) manually. [7-zip](https://www.7-zip.org/) might be required for unzipping in Linux.
->To crop the WSIs into patches, run:  
-```
-  $ python test_crop_single.py --dataset=tcga
-```  
->A folder containing all patches for each WSI will be created at `./test/patches`.  
->After the WSIs are cropped, run the testing script:
-```
-  $ python testing_tcga.py
-```   
->The thumbnails of the WSIs will be saved in `./test/thumbnails`.  
->The detection color maps will be saved in `./test/output`.  
->The testing pipeline will process every WSI placed inside the `./test/input` folder. The slide will be detected as a LUAD, LUSC, or benign sample.
-### Camelyon16 dataset
-> Generating detection maps for Camelyon16 is similar. Direct download [link](https://uwmadison.box.com/shared/static/qs717clgaux5hx2mf5qnwmlsoz2elci2.zip) for the sample slides.
-```
-  $ python download.py --dataset=c16-test
-  $ python test_crop_single.py --dataset=c16
-  $ python testing_c16.py
-```
-
-## Processing raw WSI data
-If you are processing WSI from raw images, you will need to download the WSIs first.
-
-**Download WSIs.**  
-* >**From GDC data portal.** You can use [GDC data portal](https://docs.gdc.cancer.gov/Data_Transfer_Tool/Users_Guide/Getting_Started/) with a manifest file and configuration file. The raw WSIs take about 1TB of disc space and may take several days to download. Please check [details](https://docs.gdc.cancer.gov/Data_Transfer_Tool/Users_Guide/Getting_Started/) regarding the use of TCGA data portal. Otherwise, individual WSIs can be download manually in GDC data portal [repository](https://portal.gdc.cancer.gov/repository?filters=%7B%22op%22%3A%22and%22%2C%22content%22%3A%5B%7B%22content%22%3A%7B%22field%22%3A%22files.cases.primary_site%22%2C%22value%22%3A%5B%22bronchus%20and%20lung%22%5D%7D%2C%22op%22%3A%22in%22%7D%2C%7B%22content%22%3A%7B%22field%22%3A%22files.data_format%22%2C%22value%22%3A%5B%22svs%22%5D%7D%2C%22op%22%3A%22in%22%7D%2C%7B%22op%22%3A%22in%22%2C%22content%22%3A%7B%22field%22%3A%22files.experimental_strategy%22%2C%22value%22%3A%5B%22Diagnostic%20Slide%22%5D%7D%7D%5D%7D)  
-* >**From Google Drive.** The svs files are also [uploaded](https://drive.google.com/drive/folders/1UobMSqJEqINX2izxrwbgprugjlTporSQ?usp=sharing). The dataset contains in total 1053 slides, including 512 LUSC and 541 LUAD. 10 low-quality LUAD slides are discarded. 
-
-**Sort svs files in the folder.**
-Separate LUAD and LUSC slides according to the IDs and place the files into folder `WSI/TCGA-lung/LUAD` or `WSI/TCGA-lung/LUSC`. 
-
-**Prepare the patches.**  
->We will be using [OpenSlide](https://openslide.org/), a C library with a [Python API](https://pypi.org/project/openslide-python/) that provides a simple interface to read WSI data. We refer the users to [OpenSlide Python API document](https://openslide.org/api/python/) for the details of using this tool.  
->The patches could be saved in './WSI/TCGA-lung/pyramid' in a pyramidal structure for two magnification levels. The first magnification level is level 0, which corresponds to a base magnification specified by `-b`. For example, to extract patches at 20x and 5x magnifications, run:  
-```
-  $ python deepzoom_tiler.py -m 0 2 -b 20
-```
->Or, the patches could be cropped at a single level magnification and saved in './WSI/TCGA-lung/single'. For example, extract patches at 10x magnification:  
-```
-  $ python deepzoom_tiler.py -m 0 -b 10
-```
->Camelyon16 consists of mixed magnifications so to reproduce:
-```
- $ python deepzoom_tiler.py -m 1 -b 20 -d Camelyon16 -v tif
-```
-
-**Train the embedder.**  
->We provided a modified script from this repository [Pytorch implementation of SimCLR](https://github.com/sthalles/SimCLR) For training the embedder.  
-Navigate to './simclr' and edit the attributes in the configuration file 'config.yaml'. You will need to determine a batch size that fits your gpu(s). We recommend using a batch size of at least 512 to get good simclr features. The trained model weights and loss log are saved in folder './simclr/runs'.  
->If patches are cropped in single magnification.  
-```
-  cd simclr
-  $ python run.py
-```
->If patches are cropped in multiple magnifications, the embedder for each magnification needs to be trained separately to achieve better results.  
-```
-  $ python run.py --multiscale=1 --level=low
-  $ python run.py --multiscale=1 --level=high
-```
-> Otherwise, you could use the trained embedder for [Camelyon16](https://drive.google.com/drive/folders/14pSKk2rnPJiJsGK2CQJXctP7fhRJZiyn?usp=sharing) and [TCGA](https://drive.google.com/drive/folders/1Rn_VpgM82VEfnjiVjDbObbBFHvs0V1OE?usp=sharing)  
-
-**Compute the features.**  
->Compute the features for single magnification:  
-```
-  $ cd ..
-  $ python compute_feats.py --dataset=TCGA-lung
-```
->The last trained embedder will be used by default. To use a specific embedder, set the option `--weights=[RUN_NAME]`, where `[RUN_NAME]` is a folder name inside `simclr/runs/`. 
->Or, compute the features for multiple magnifications:  
-```
-  $ python compute_feats.py --dataset=TCGA-lung --magnification=tree
-```
-To use a specific embedder for each magnification, set option `--weights_low=[RUN_NAME]` (embedder for low magnification) and `--weights_high=[RUN_NAME]` (embedder for high magnification).  
->To use ImageNet pretrained CNN for feature computing (batch normalization needed):
-```
-  $ python compute_feats.py --weights=ImageNet --norm_layer=batch
-```
->Specify the argument `--magnification=high` or `--magnification=low` if the patches are cropped in multi-magnifications but only one magnification is to be computed.
-
-**Start training.**  
-```
-  $ python train_tcga.py --dataset=TCGA-lung
-```
-**Regarding multiscale features**  
-You can download the precomputed features here:   [Camelyon16](https://drive.google.com/drive/folders/1wHyaZkpgVGSoxPpaCeUCAFGhxcS9ZZEA?usp=sharing)  [TCGA](https://drive.google.com/drive/folders/1v0ZEgSIYgriYuRn_O2p0t3RXdFHtiA61?usp=sharing)  
-At training, use
-```
-  $ python train_tcga.py --feats_size=1024 --dataset=[DATASET_NAME]  --num_classes=[NUMBER_OF_CLASSES]
-```
 
 ## Training on your own datasets
 1. Place WSI files as `WSI\[DATASET_NAME]\[CATEGORY_NAME]\[SLIDE_FOLDER_NAME] (optional)\SLIDE_NAME.svs`. 

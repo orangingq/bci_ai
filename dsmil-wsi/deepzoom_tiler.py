@@ -1,3 +1,4 @@
+import csv
 import json
 from multiprocessing import Process, JoinableQueue
 import argparse
@@ -276,29 +277,86 @@ def get_abs_path(path):
     current_file_directory = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(current_file_directory, path)
 
+def get_label_dict(data):
+    assert data == 'acrobat', 'Only acrobat dataset is supported'
+    label_csv_file = os.path.join(path.get_data_dir(data), 'meta_data', 'acrobat_label.csv')
+    label_dict = {'train': {}, 'valid': {}, 'test': {}}
+    with open(label_csv_file, 'r') as f:
+        f.readline()  # Skip the header
+        reader = csv.reader(f)
+        for row in reader:
+            patient, dataset, label, _, _ = row
+            if label == '0' or label in [None, '', '?']: # 0: negative / 1~3: positive
+                label = 'neg' # '0' -> 'neg'
+            elif label not in ['0', '1', '2', '3']: # label should be in ['0', '1', '2', '3']
+                raise ValueError(f"patient [{patient}] - Invalid label: {label}")
+            # classify the dataset into train, valid, test / label into neg, 1, 2, 3
+            if dataset == 'test':
+                label_dict['test'][patient] = label
+            elif dataset == 'valid':
+                label_dict['valid'][patient] = label
+            else:
+                label_dict['train'][patient] = label
+    return label_dict
+
+def preprocess_WSI(data, imgtype:str='HER2', type:str='train', slide_format:str='tif')->list:
+    assert data == 'acrobat', 'Only acrobat dataset is supported'
+    assert imgtype in ['HER2', 'HE', 'PGR', 'KI67', 'ER'], f'Invalid image type {imgtype}'
+    assert type in ['train', 'test'], f'Invalid type {type}'
+    assert slide_format in ['tif'], f'Invalid slide format {slide_format}'
+    label_dict = get_label_dict(data) # {'train': {patient: label}, 'valid': {patient: label}, 'test': {patient: label}}
+    label_types = ['neg', '1', '2', '3']
+    label_dirs = {i: os.path.join(path.get_data_dir(data), i) for i in label_types}
+
+    # Create label folders
+    for label_dir in label_dirs.values():
+        os.makedirs(label_dir, exist_ok=True)
+    
+    # Copy raw WSI files to the label folders
+    raw_file_list = path.get_raw_WSI_files(data, imgtype, type, slide_format)
+    for file in raw_file_list:
+        filename = file.split(os.sep)[-1]
+        file_number, img_type, _ = filename.split('_')
+        if filename.endswith(f'.{slide_format}') and img_type ==imgtype:
+            assert file_number in label_dict[type], f"Patient {file_number} not found in the label dictionary"
+            label = label_dict[type][file_number]
+            to_file_path = os.path.join(label_dirs[label], filename)
+            if os.path.exists(to_file_path):
+                print(f"[{filename}] : already exists in {to_file_path}")
+            else:
+                shutil.copy(file, to_file_path)
+                print(f"[{filename}] : copied to {to_file_path}")
+    return path.get_labeled_WSI_files(args.dataset, args.imgtype, args.type, args.slide_format)
+
 if __name__ == '__main__':
     Image.MAX_IMAGE_PIXELS = None
     parser = argparse.ArgumentParser(description='Patch extraction for WSI')
-    parser.add_argument('-d', '--dataset', type=str, default='TCGA-lung', help='Dataset name') # acrobat
+    parser.add_argument('-d', '--dataset', type=str, default='acrobat', help='Dataset name') # acrobat
+    parser.add_argument('--imgtype', type=str, default='HER2', help='Image type') # HER2
+    parser.add_argument('--type', type=str, default='train', choices=['train', 'test'], help='Dataset type [train]') # train
     parser.add_argument('-e', '--overlap', type=int, default=0, help='Overlap of adjacent tiles [0]') # 0
     parser.add_argument('-f', '--format', type=str, default='jpeg', help='Image format for tiles [jpeg]') # jpeg
-    parser.add_argument('-v', '--slide_format', type=str, default='svs', help='Image format for tiles [svs]') # tif
+    parser.add_argument('-v', '--slide_format', type=str, default='tif', help='Image format for tiles [tif]') # tif
     parser.add_argument('-j', '--workers', type=int, default=4, help='Number of worker processes to start [4]') # 4
     parser.add_argument('-q', '--quality', type=int, default=70, help='JPEG compression quality [70]') # 70
     parser.add_argument('-s', '--tile_size', type=int, default=224, help='Tile size [224]') # 224
     parser.add_argument('-b', '--base_mag', type=float, default=20, help='Maximum magnification for patch extraction [20]') # 20
-    parser.add_argument('-m', '--magnifications', type=int, nargs='+', default=(0,), help='Levels for patch extraction [0]') 
+    parser.add_argument('-m', '--magnifications', type=int, nargs='+', default=(1,3), help='Levels for patch extraction [0]') 
     parser.add_argument('-o', '--objective', type=float, default=20, help='The default objective power if metadata does not present [20]')
     parser.add_argument('-t', '--background_t', type=int, default=15, help='Threshold for filtering background [15]')  
     args = parser.parse_args()
+    print(f"***Arguments: \n\t{args}")
     levels = tuple(sorted(args.magnifications))
     assert len(levels)<=2, 'Only 1 or 2 magnifications are supported!'
-    path_base = path.get_data_dir(args.dataset) # get_abs_path(os.path.join('../datasets', args.dataset))
-    # if len(levels) == 2:
-    out_base = path.get_patch_dir(args.dataset, 'pyramid' if len(levels)==2 else 'single') # os.path.join(path_base, 'pyramid')
-    # else:
-    #     out_base = os.path.join(path_base, 'single')
-    all_slides = glob.glob(os.path.join(path_base, '*/*.'+args.slide_format)) 
+    path_base = path.get_data_dir(args.dataset) 
+    out_base = path.get_patch_dir(args.dataset, f'pyramid_{args.type}' if len(levels)==2 else f'single_{args.type}', make=True) 
+
+    # Get all WSI files
+    all_slides = path.get_labeled_WSI_files(args.dataset, args.imgtype, args.type, args.slide_format)
+    if not len(all_slides):
+        print('No slide files found! Preprocess the slides first.')
+        all_slides = preprocess_WSI(args.dataset, args.imgtype, args.type, args.slide_format)
+    
     shutil.rmtree(get_abs_path('WSI_temp_files'), ignore_errors=True)
 
     # pos-i_pos-j -> x, y

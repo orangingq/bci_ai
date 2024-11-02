@@ -5,17 +5,19 @@ import torchvision.models as models
 
 class ResNetSimCLR(nn.Module):
 
-    def __init__(self, base_model, out_dim):
+    def __init__(self, base_model, out_dim, pretrained=False):
         super(ResNetSimCLR, self).__init__()
-        self.resnet_dict = {"resnet18": models.resnet18(weights=None, norm_layer=nn.InstanceNorm2d),
-                            "resnet50": models.resnet50(weights=None, norm_layer=nn.InstanceNorm2d)}
+        self.resnet_dict = {"resnet18": models.resnet18(weights='IMAGENET1K_V1' if pretrained else None, norm_layer=nn.InstanceNorm2d if not pretrained else None),
+                            'resnet34': models.resnet34(weights='IMAGENET1K_V1' if pretrained else None, norm_layer=nn.InstanceNorm2d if not pretrained else None),
+                            "resnet50": models.resnet50(weights='IMAGENET1K_V2' if pretrained else None, norm_layer=nn.InstanceNorm2d if not pretrained else None),}
 
         resnet = self._get_basemodel(base_model)
         num_ftrs = resnet.fc.in_features
 
+        # remove the classification head of the base resnet model
         self.features = nn.Sequential(*list(resnet.children())[:-1])
 
-        # projection MLP
+        # add additional classification head
         self.l1 = nn.Linear(num_ftrs, num_ftrs)
         self.l2 = nn.Linear(num_ftrs, out_dim)
 
@@ -35,3 +37,4 @@ class ResNetSimCLR(nn.Module):
         x = F.relu(x)
         x = self.l2(x)
         return h, x
+
