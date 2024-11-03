@@ -1,24 +1,17 @@
 import shutil
 import torch
 import torch.nn as nn
-# from torch.utils.data import DataLoader
-# from torch.autograd import Variable
-# import torchvision.transforms.functional as VF
-# from torchvision import transforms
-import tifffile as tiff
-import sys, argparse, os, copy, glob, datetime # , itertools
+import sys, argparse, os, copy, glob, datetime, json
 import pandas as pd
 import numpy as np
 from scipy.stats import mode
 from sklearn.utils import shuffle
 from sklearn.metrics import roc_curve, roc_auc_score, balanced_accuracy_score, accuracy_score, hamming_loss
 from sklearn.model_selection import KFold
-# from collections import OrderedDict
-import json
 from tqdm import tqdm
 
 from utils import path
-from . import dsmil as mil
+import dsmil as mil
 
 def get_bag_feats(csv_file_df, args):
     '''Get the bag features and label from the csv file'''
@@ -27,7 +20,7 @@ def get_bag_feats(csv_file_df, args):
     else:
         feats_csv_path = csv_file_df.iloc[0]
     df = pd.read_csv(feats_csv_path)
-    feats = shuffle(df).reset_index(drop=True)
+    feats = df.reset_index(drop=True)
     feats = feats.to_numpy()
     label = np.zeros(args.num_classes)
     if args.num_classes==1:
@@ -40,7 +33,7 @@ def get_bag_feats(csv_file_df, args):
     return label, feats, feats_csv_path
 
 def generate_pt_files(args, df, type):
-    temp_dir = f"dsmil-wsi/temp_{type}"
+    temp_dir = f"temp_{type}"
     shutil.rmtree(temp_dir, ignore_errors=True)
     if os.path.exists(temp_dir) and len(os.listdir(temp_dir)) > 0:
         print(f'Intermediate {type}ing files already exist : {temp_dir}. Skipping creation.')
@@ -141,18 +134,6 @@ def test(args, test_df, milnet, criterion, thresholds=None, return_predictions=F
         assert test_predictions.max() < args.num_classes, f"test_predictions.max() = {test_predictions.max()} >= args.num_classes = {args.num_classes}"
     bag_score = (test_labels == test_predictions).sum()     
     avg_score = bag_score / len(test_df)
-    
-
-            
-    # label_name = ['1', '2', '3', 'neg']
-    # label = label_name[bag_label.argmax()]
-    # type = test_df[0].split(os.sep)[-2].split('_')[1]
-    # dir = os.path.join(path.get_patch_dir(type=f'pyramid_{type}'), label, item.split(os.sep)[-1].split('.')[0])
-    # # wsi_img = path.get_data_dir('acrobat') + f'/{label}/' + item.split(os.sep)[-1].split('.')[0] + '.tif'
-    # pos_arr = [name.split(os.sep)[-1].rstrip('.jpeg').split('_') for name in glob.glob(dir + '/*/*.jpeg')]
-    # pos_arr  = [[int(row), int(col)] for [row, col] in pos_arr]
-    # draw(args, dir, bag_prediction, pos_arr, A, thresholds_optimal) # CSH
-            
 
     if return_predictions:
         return total_loss / len(test_df), avg_score, auc_value, thresholds_optimal, test_predictions, test_labels
@@ -176,10 +157,8 @@ def multi_label_roc(labels, predictions, num_classes, pos_label=1):
         prediction = np.nan_to_num(prediction, nan=0.0)
         fpr, tpr, threshold = roc_curve(label, prediction, pos_label=1)
         fpr_optimal, tpr_optimal, threshold_optimal = optimal_thresh(fpr, tpr, threshold)
-        # c_auc = roc_auc_score(label, prediction)
         try:
             c_auc = roc_auc_score(label, prediction)
-            # print(f"\t[{c}] ROC AUC\t: {c_auc:.4f}")
         except ValueError as e:
             if str(e) == "Only one class present in y_true. ROC AUC score is not defined in that case.":
                 print("ROC AUC score is not defined when only one class is present in y_true. c_auc is set to 1.")
@@ -284,8 +263,7 @@ def main():
     generate_pt_files(args, pd.read_csv(bags_csv), type='train')
     
     if args.eval_scheme == '5-fold-cv':
-        train_bags_path = glob.glob('dsmil-wsi/temp_train/*.pt')
-        # bags_path = bags_path.sample(n=200)
+        train_bags_path = glob.glob('temp_train/*.pt')
         kf = KFold(n_splits=5, shuffle=True, random_state=2024)
         fold_results = []
 
@@ -333,8 +311,7 @@ def main():
 
 
     elif args.eval_scheme == '5-time-train+valid+test':
-        train_bags_path = glob.glob('dsmil-wsi/temp_train/*.pt')
-        # bags_path = bags_path.sample(n=50, random_state=42)
+        train_bags_path = glob.glob('temp_train/*.pt')
         fold_results = []
 
         save_path = os.path.join(current_path, 'weights', datetime.date.today().strftime("%Y%m%d"))
@@ -386,11 +363,11 @@ def main():
             print(f"Class {i}: Mean AUC = {mean_score:.4f}")
 
     if args.eval_scheme == '5-fold-cv-standalone-test':
-        train_bags_path = shuffle(glob.glob('dsmil-wsi/temp_train/*.pt'))
+        train_bags_path = shuffle(glob.glob('temp_train/*.pt'))
         if args.dataset == 'acrobat':
             bags_csv = os.path.join(path.get_feature_dir(args.dataset, args.run_name, 'test'), args.dataset+'.csv') # '.../acrobat.csv'
             generate_pt_files(args, pd.read_csv(bags_csv), type='test')
-            test_bags_path = glob.glob('dsmil-wsi/temp_test/*.pt')
+            test_bags_path = glob.glob('temp_test/*.pt')
         else: # split the training set into training and test set
             test_bags_path = train_bags_path[:int(args.split*len(train_bags_path))]
             train_bags_path = train_bags_path[int(args.split*len(train_bags_path)):]
@@ -442,7 +419,7 @@ def main():
             fold_predictions.append(test_predictions)
         predictions_stack = np.stack(fold_predictions, axis=0)
         mode_result = mode(predictions_stack, axis=0)
-        combined_predictions = mode_result.mode# [0]
+        combined_predictions = mode_result.mode
         combined_predictions = combined_predictions.squeeze()
 
         if args.num_classes > 1:

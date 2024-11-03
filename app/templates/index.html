@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Image Generator</title>
+    <script>
+        function createSlider(overlayImg) {
+            const slider = document.createElement('input');
+            slider.id = 'slider';
+            slider.type = 'range';
+            slider.min = '0';
+            slider.max = '1';
+            slider.step = '0.01';
+            slider.value = '0.5';
+            slider.style.display = 'block';
+            slider.style.marginTop = '20px';
+            slider.oninput = function() {
+                overlayImg.style.opacity = slider.value;
+            };
+            slider.style.position = 'relative';
+            return slider;
+        }
+        function setColorMarks() {
+            const legend = document.createElement('div');
+            legend.style.position = 'relative';
+            legend.style.marginTop = '20px';
+
+            const redMark = document.createElement('div');
+            const greenMark = document.createElement('div');
+            const blueMark = document.createElement('div');
+            const array = [redMark, greenMark, blueMark];
+            const colors = ['red', 'green', 'blue'];
+            const text = ['1', '2', '3'];
+            const ids = ['red-mark', 'green-mark', 'blue-mark'];
+            array.forEach(element => {
+                element.id = ids[array.indexOf(element)];
+                element.textContent = text[array.indexOf(element)];
+                element.style.display = 'inline-block';
+                element.style.width = '20px';
+                element.style.height = '20px';
+                element.style.marginRight = '10px';
+                element.style.color = 'white';
+                element.style.backgroundColor = colors[array.indexOf(element)];
+                element.style.textAlign = 'center'; 
+                element.style.lineHeight = '20px';
+                legend.appendChild(element);
+            });
+            return legend;
+        }
+        function eraseOutputs() {
+            const img = document.getElementById('output-image');
+            const overlayImg = document.getElementById('overlay-image');
+            const slider = document.getElementById('slider');
+            const text = document.getElementById('output-text');
+            const redmark = document.getElementById('red-mark');
+            const greenmark = document.getElementById('green-mark');
+            const bluemark = document.getElementById('blue-mark');
+            if (img) { img.remove();}
+            if (overlayImg) {overlayImg.remove();}
+            if (slider) {slider.remove();}
+            if (redmark) {redmark.remove();}
+            if (greenmark) {greenmark.remove();}
+            if (bluemark) {bluemark.remove();}
+            text.textContent = '';
+        }
+        function getPatientNum() {
+            if (!document.getElementById('patient').value) {
+                alert('Please enter a valid patient number');
+                return;
+            }
+            return document.getElementById('patient').value;
+        }
+        function generateImage() {
+            const patient = getPatientNum();
+            eraseOutputs();
+            const text = document.getElementById('output-text');
+            text.textContent = 'Please wait...';
+            if (!patient) {
+                alert('Please enter a valid patient number');
+                return;
+            }
+            const slideName = patient + '_HER2_test';
+            fetch('/run_python', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ slide_name: slideName })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // Parse the error JSON if the response is not OK
+                    return response.json().then(errorData => {
+                        const text = document.getElementById('output-text');
+                        text.textContent = "Patient " + patient + " is not supported.";
+                        console.log('Error:', errorData.error);
+                        throw new Error(errorData.error || "Unknown error");
+                    });
+                }
+                return response.json();  // Parse JSON if response is OK
+            })
+            
+            .then(data => {
+                // Display the image
+                const img = document.getElementById('output-image');
+                if (img) {
+                    img.src = `data:image/jpeg;base64,${data.image}`;
+                } else {
+                    const img = document.createElement('img');
+                    img.src = `data:image/jpeg;base64,${data.image}`;
+                    img.id = 'output-image';
+                    img.style.width = '100%';
+                    img.style.position = 'absolute';
+
+                    const overlayImg = document.createElement('img');
+                    overlayImg.src = `data:image/jpeg;base64,${data.colormap}`; // Replace with the actual path to image2
+                    overlayImg.id = 'overlay-image';
+                    overlayImg.style.width = '100%';
+                    overlayImg.style.position = 'absolute';
+                    overlayImg.style.opacity = '0.5'; // Initial transparency
+                    
+                    const container = document.createElement('div');
+                    const legend = setColorMarks();
+                    container.appendChild(legend);
+                    const slider = createSlider(overlayImg);
+                    container.appendChild(slider);
+                    container.appendChild(img);
+                    container.appendChild(overlayImg);
+                    document.body.appendChild(container);
+
+                }
+                // Display the text data
+                const text = document.getElementById('output-text');
+                text.textContent = "Detected: " + data.detected + "     True Label: " + data.true;
+                console.log('Success:', data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>Generate Image</h1>
+    <p>Enter the patient number to generate an image.</p>
+    <input type="text" id="patient" placeholder="21">
+    <button onclick="generateImage()">Generate</button>
+    <div>
+        <!-- <img id="output-image" src="" alt="Generated Image" style="margin-top: 20px;"> -->
+        <p id="output-text" style="margin-top: 20px;"></p>
+    </div>
+</body>
+</html>

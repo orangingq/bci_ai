@@ -14,23 +14,23 @@
 __pycache__
 logs
 
-# model weight
-BCSS_segmentation/bcss_fold0_ft_model.pth.tar
-BCSS_segmentation/*.zip
 
-# dsmil-wsi
-dsmil-wsi/datasets/
-dsmil-wsi/embedder/
-dsmil-wsi/WSI_temp_files/
-dsmil-wsi/simclr/runs
-dsmil-wsi/simclr/all_patches.csv
-dsmil-wsi/test/
-dsmil-wsi/temp_train
-dsmil-wsi/temp_test
-dsmil-wsi/weights/
-dsmil-wsi/.ipynb_checkpoints
-dsmil-wsi/.ipynb_checkpoints/
-dsmil-wsi/*/.ipynb_checkpoints/*
-dsmil-wsi/*.ipynb
-dsmil-wsi/abmil.py
-dsmil-wsi/test-c16/
+# intermediate files
+datasets/
+embedder/
+WSI_temp_files/
+simclr/runs
+simclr/all_patches.csv
+test/
+temp_train
+temp_test
+weights/
+.ipynb_checkpoints
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+*.ipynb
+abmil.py
+
+# Exclude the following files
+!thumbnails/framework.png
+!datasets/acrobat/meta_data/acrobat_label.csv
