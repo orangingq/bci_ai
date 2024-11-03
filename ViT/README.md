@@ -28,8 +28,17 @@ BCI_AI (root directory)
 
 ## How to Run?
 
-#### 5. Training.
+#### 1. Training
 
 ```bash
-python -m train --run_name={resnet18_scratch}
+python vit.py   --lr=1e-5
+                --root_dir='/pathology/'
+                --augmentation_level=3  # 0, 1, 2, 3
 ```
+
+#### 2. Evaluation
+
+```bash
+python evaluate.py
+```
+
