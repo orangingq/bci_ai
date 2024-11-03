@@ -14,30 +14,27 @@ from transformers import ViTFeatureExtractor, ViTForImageClassification
 
 #Augmentations
 AUGMENTATIONS = {
-    "horizontal_flip": [v2.CenterCrop(224), v2.RandomHorizontalFlip()],
-    "vertical_flip": [v2.CenterCrop(224), v2.RandomVerticalFlip()],
-    "rotation": [v2.CenterCrop(224), v2.RandomRotation(degrees=30)],
-    "translate_x": [v2.CenterCrop(224), v2.RandomAffine(degrees=0, translate=[0.2, 0])],
-    "translate_y": [v2.CenterCrop(224), v2.RandomAffine(degrees=0, translate=[0, 0.2])],
-    "shear_x": [v2.CenterCrop(224), v2.RandomAffine(degrees=0, shear=[0.0, 30.0])],
+    "horizontal_flip": [v2.RandomHorizontalFlip()],
+    "vertical_flip": [v2.RandomVerticalFlip()],
+    "rotation": [v2.RandomRotation(degrees=30)],
+    "translate_x": [v2.RandomAffine(degrees=0, translate=[0.2, 0])],
+    "translate_y": [v2.RandomAffine(degrees=0, translate=[0, 0.2])],
+    "shear_x": [v2.RandomAffine(degrees=0, shear=[0.0, 30.0])],
     "shear_y": [
-        v2.CenterCrop(224),
         v2.RandomAffine(degrees=0, shear=[0.0, 0.0, 0.0, 30.0]),
     ],
-    "elastic_transform": [v2.CenterCrop(224), v2.ElasticTransform()],
-    "brightness": [v2.CenterCrop(224), v2.ColorJitter(brightness=0.5)],
-    "contrast": [v2.CenterCrop(224), v2.ColorJitter(contrast=0.5)],
-    "saturation": [v2.CenterCrop(224), v2.ColorJitter(saturation=0.5)],
-    "gaussian_blur": [v2.CenterCrop(224), v2.GaussianBlur(kernel_size=3)],
+    "elastic_transform": [v2.ElasticTransform()],
+    "brightness": [v2.ColorJitter(brightness=0.5)],
+    "contrast": [v2.ColorJitter(contrast=0.5)],
+    "saturation": [v2.ColorJitter(saturation=0.5)],
+    "gaussian_blur": [v2.GaussianBlur(kernel_size=3)],
     "scaling": [
-        v2.CenterCrop(224),
         v2.RandomAffine(degrees=0, scale=[0.8, 1.2]),
     ], 
 }
 augmentations = {
-    0: v2.Compose([v2.CenterCrop(224)]),
-    1: v2.Compose([v2.CenterCrop(224), random.choice(AUGMENTATIONS["rotation"] + AUGMENTATIONS["translate_x"] + AUGMENTATIONS["translate_y"] + AUGMENTATIONS["horizontal_flip"] + AUGMENTATIONS["vertical_flip"])]),
-    2: v2.Compose([v2.CenterCrop(224), random.choice(AUGMENTATIONS["rotation"] + AUGMENTATIONS["translate_x"] + AUGMENTATIONS["translate_y"] + AUGMENTATIONS["shear_x"] + AUGMENTATIONS["shear_y"] + AUGMENTATIONS["elastic_transform"] + AUGMENTATIONS["horizontal_flip"] + AUGMENTATIONS["vertical_flip"])]),
+    1: v2.Compose([random.choice(AUGMENTATIONS["rotation"] + AUGMENTATIONS["translate_x"] + AUGMENTATIONS["translate_y"] + AUGMENTATIONS["horizontal_flip"] + AUGMENTATIONS["vertical_flip"])]),
+    2: v2.Compose([random.choice(AUGMENTATIONS["rotation"] + AUGMENTATIONS["translate_x"] + AUGMENTATIONS["translate_y"] + AUGMENTATIONS["shear_x"] + AUGMENTATIONS["shear_y"] + AUGMENTATIONS["elastic_transform"] + AUGMENTATIONS["horizontal_flip"] + AUGMENTATIONS["vertical_flip"])]),
     3: v2.Compose([random.choice(AUGMENTATIONS["rotation"] + AUGMENTATIONS["translate_x"] + AUGMENTATIONS["translate_y"] + AUGMENTATIONS["shear_x"] + AUGMENTATIONS["shear_y"] + AUGMENTATIONS["elastic_transform"] + AUGMENTATIONS["horizontal_flip"] + AUGMENTATIONS["vertical_flip"] + AUGMENTATIONS["brightness"] + AUGMENTATIONS["contrast"] + AUGMENTATIONS["saturation"] + AUGMENTATIONS["gaussian_blur"] + AUGMENTATIONS["scaling"])])
 }
 

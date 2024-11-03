@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import random
 
 from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
@@ -15,6 +16,15 @@ from sklearn.metrics import roc_curve, auc
 from datasets import CustomDataset, augmentations
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+random_seed = 3565#random.randint(0, 10000)
+print(f"Generated random seed: {random_seed}")#4750#3565
+random.seed(random_seed)
+np.random.seed(random_seed)
+torch.manual_seed(random_seed)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed(random_seed)
+    torch.cuda.manual_seed_all(random_seed)
 
 # 테스트 모델 함수
 def test_model(model, test_loader, device):
@@ -47,7 +57,7 @@ csv_files = [ os.path.join('/pathology/bci/', 'BCI_train_label_1027.csv'), os.pa
 feature_extractor = ViTFeatureExtractor.from_pretrained('google/vit-base-patch16-224-in21k')
 
 # 데이터셋 생성
-dataset = CustomDataset(data_folders, csv_files, feature_extractor, augmentations=augmentations[3])
+dataset = CustomDataset(data_folders, csv_files, feature_extractor)
 
 # train, val, test 데이터셋 분할
 indices = list(range(len(dataset)))

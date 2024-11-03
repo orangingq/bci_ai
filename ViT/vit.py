@@ -20,6 +20,14 @@ from sklearn.metrics import confusion_matrix, accuracy_score
 from datasets import CustomDataset, augmentations
 from utils import EarlyStopping
 
+random_seed = 3565#random.randint(0, 10000)
+print(f"Generated random seed: {random_seed}")#4750#3565
+random.seed(random_seed)
+np.random.seed(random_seed)
+torch.manual_seed(random_seed)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed(random_seed)
+    torch.cuda.manual_seed_all(random_seed)
 
 parser = argparse.ArgumentParser(description="Script for training a model with data augmentation.")
 parser.add_argument('--root_dir', type=str, default='/pathology/bci/',
