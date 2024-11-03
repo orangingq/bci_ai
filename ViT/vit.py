@@ -21,7 +21,7 @@ from datasets import CustomDataset, augmentations
 from utils import EarlyStopping
 
 random_seed = 3565#random.randint(0, 10000)
-print(f"Generated random seed: {random_seed}")#4750#3565
+
 random.seed(random_seed)
 np.random.seed(random_seed)
 torch.manual_seed(random_seed)
@@ -83,7 +83,7 @@ criterion = nn.CrossEntropyLoss()
 num_epochs = 20
 patience = 5
 
-model_save_path = os.path.join(args.root_dir, 'model', f'vision_model_1101_{args.augmentation_level}_{args.lr}.pth')
+model_save_path = os.path.join(args.root_dir, 'model', f'vision_model_{args.augmentation_level}_{args.lr}.pth')
 early_stopping = EarlyStopping(patience=patience, path=model_save_path)
 
 # 모델 학습
