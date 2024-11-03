@@ -30,11 +30,11 @@ if torch.cuda.is_available():
     torch.cuda.manual_seed_all(random_seed)
 
 parser = argparse.ArgumentParser(description="Script for training a model with data augmentation.")
-parser.add_argument('--root_dir', type=str, default='/pathology/bci/',
+parser.add_argument('--root_dir', type=str, default='/pathology/',
                     help='Directory to save the model')
 parser.add_argument('--augmentation_level', type=int, choices=[0, 1, 2, 3], default=3,
                     help='Select the augmentation level (0, 1, 2, 3)')
-parser.add_argument('--lr', type=float, default=5e-6,
+parser.add_argument('--lr', type=float, default=1e-5,
                     help='learning rate')
 args = parser.parse_args()
 
@@ -43,8 +43,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 # 데이터 경로 설정
-data_folders = [ os.path.join(args.root_dir, 'BCI_dataset', 'IHC', 'train'), os.path.join(args.root_dir, 'BCI_dataset', 'IHC', 'test') ]
-csv_files = [ os.path.join(args.root_dir, 'BCI_train_label_1027.csv'), os.path.join(args.root_dir, 'BCI_test_label_1027.csv') ]
+data_folders = [ os.path.join(args.root_dir, 'bci', 'train'), os.path.join(args.root_dir, 'bci', 'test'), os.path.join(args.root_dir, 'acrobat_patch') ]
+csv_files = [ os.path.join(args.root_dir, 'BCI_train_label.csv'), os.path.join(args.root_dir, 'BCI_test_label.csv') ]
 feature_extractor = ViTFeatureExtractor.from_pretrained('google/vit-base-patch16-224-in21k')
 
 # 데이터셋 생성
