@@ -115,6 +115,7 @@ class ResNetDataset(Dataset):
     def __init__(self, folder, csv, transform, augmentations=None):
         self.folder1 = folder[0]
         self.folder2 = folder[1]
+        self.folder3 = folder[2]
         self.transform = transform
         self.augmentations = augmentations
 
@@ -157,8 +158,8 @@ class ResNetDataset(Dataset):
                     print(f"Warning: Label for {image_file} not found in CSV and is skipped.")
 
         # folder3 데이터 가져오기 (acrobat)
-        for label in ["0", "1", "0_add", "3_add"]:
-            label_folder = os.path.join('/pathology/acrobat_patch', str(label))
+        for label in os.listdir(self.folder3):
+            label_folder = os.path.join(self.folder3, str(label))
             for image_file in os.listdir(label_folder):
                 if image_file.endswith('.jpeg'):
                     self.image_paths.append(os.path.join(label_folder, image_file))
