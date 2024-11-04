@@ -102,42 +102,6 @@ Move to simclr directory first. (`cd simclr`)
 
 Move back to bci_ai folder. (`cd ..`)
 
-<table>
-  <tr>
-    <th>Backbone</th><th>Dataset</th><th>Accuracy</th>
-    <th colspan="4">Mean AUC per IHC Class</th>
-  </tr>
-  <tr>
-    <th></th><th></th>
-    <th></th><th>1</th><th>2</th><th>3</th><th>0</th>
-  </tr>
-  <tr>
-    <th rowspan="3">ResNet18</th><th>ImageNet</th><td>0.5536</td><td>0.7203</td><td>0.8340</td><td>0.9533</td><td>0.8357</td>
-  </tr>
-  <tr>
-    <th>ACROBAT</th><td>0.5714</td><td>0.7247</td><td>0.8400</td><td>0.8727</td><td>0.6760</td>
-  </tr>
-  <tr>
-    <th>Both</th><td>0.6607</td><td>0.7044</td><td>0.9189</td><td>0.9325</td><td>0.8363</td>
-  </tr>
-  <tr>
-    <th rowspan="3">ResNet50</th><th>ImageNet</th><td>0.5536</td><td>0.6624</td><td>0.8010</td><td>0.9318</td><td>0.8172</td>	
-  </tr>
-  <tr>
-    <th>ACROBAT</th><td>0.4821</td><td>0.5217</td><td>0.6675</td><td>0.8682</td><td>0.8081</td>
-  </tr>
-  <tr>
-    <th>Both</th><td>0.1607</td><td>0.6139</td><td>0.6285</td><td>0.9889</td><td>0.6847</td>
-  </tr>
-</table>
-<style>
-  table {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-</style>
-
 **Code Examples**
 
 > Add `--type=test` option when computing features of test dataset.
