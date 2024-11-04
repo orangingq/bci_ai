@@ -33,7 +33,7 @@ def get_bag_feats(csv_file_df, args):
     return label, feats, feats_csv_path
 
 def generate_pt_files(args, df, type):
-    temp_dir = f"temp_{type}"
+    temp_dir = f"temp_{type}_{args.run_name}"
     shutil.rmtree(temp_dir, ignore_errors=True)
     if os.path.exists(temp_dir) and len(os.listdir(temp_dir)) > 0:
         print(f'Intermediate {type}ing files already exist : {temp_dir}. Skipping creation.')
@@ -69,6 +69,8 @@ def train(args, train_df, milnet, criterion, optimizer):
         if bag_prediction.isnan().any():
             print(f"bag_prediction contains {torch.isnan(bag_prediction).sum()} NaN elements")
             # torch.nan_to_num(bag_prediction, nan=0.0)
+        # added softmax
+        ins_prediction, bag_prediction = torch.nn.Softmax(dim=1)(ins_prediction), torch.nn.Softmax(dim=1)(bag_prediction)
         max_prediction, _ = torch.max(ins_prediction, 0)        
         bag_loss = criterion(bag_prediction.view(1, -1), bag_label.view(1, -1))
         max_loss = criterion(max_prediction.view(1, -1), bag_label.view(1, -1))
@@ -219,7 +221,7 @@ def main():
     parser.add_argument('--dataset', default='acrobat', type=str, help='Dataset folder name')
     parser.add_argument('--num_classes', default=4, type=int, help='Number of output classes [4]')
     parser.add_argument('--lr', default=0.0001, type=float, help='Initial learning rate [0.0001]')
-    parser.add_argument('--num_epochs', default=10, type=int, help='Number of total training epochs [100]')
+    parser.add_argument('--num_epochs', default=50, type=int, help='Number of total training epochs [100]')
     parser.add_argument('--stop_epochs', default=10, type=int, help='Skip remaining epochs if training has not improved after N epochs [10]')
     parser.add_argument('--gpu_index', type=int, nargs='+', default=(0,), help='GPU ID(s) [0]')
     parser.add_argument('--weight_decay', default=1e-3, type=float, help='Weight decay [1e-3]')
@@ -232,6 +234,8 @@ def main():
     parser.add_argument('--eval_scheme', default='5-fold-cv-standalone-test', type=str, help='Evaluation scheme [ 5-fold-cv | 5-fold-cv-standalone-test | 5-time-train+valid+test ]')
 
     args = parser.parse_args()
+    from utils.util import random_seed
+    random_seed(2024)
     print(args.eval_scheme)
 
     gpu_ids = tuple(args.gpu_index)
@@ -263,7 +267,7 @@ def main():
     generate_pt_files(args, pd.read_csv(bags_csv), type='train')
     
     if args.eval_scheme == '5-fold-cv':
-        train_bags_path = glob.glob('temp_train/*.pt')
+        train_bags_path = glob.glob(f'temp_train_{args.run_name}/*.pt')
         kf = KFold(n_splits=5, shuffle=True, random_state=2024)
         fold_results = []
 
@@ -311,7 +315,7 @@ def main():
 
 
     elif args.eval_scheme == '5-time-train+valid+test':
-        train_bags_path = glob.glob('temp_train/*.pt')
+        train_bags_path = glob.glob(f'temp_train_{args.run_name}/*.pt')
         fold_results = []
 
         save_path = os.path.join(current_path, 'weights', datetime.date.today().strftime("%Y%m%d"))
@@ -363,11 +367,11 @@ def main():
             print(f"Class {i}: Mean AUC = {mean_score:.4f}")
 
     if args.eval_scheme == '5-fold-cv-standalone-test':
-        train_bags_path = shuffle(glob.glob('temp_train/*.pt'))
+        train_bags_path = shuffle(glob.glob(f'temp_train_{args.run_name}/*.pt'))
         if args.dataset == 'acrobat':
             bags_csv = os.path.join(path.get_feature_dir(args.dataset, args.run_name, 'test'), args.dataset+'.csv') # '.../acrobat.csv'
             generate_pt_files(args, pd.read_csv(bags_csv), type='test')
-            test_bags_path = glob.glob('temp_test/*.pt')
+            test_bags_path = glob.glob(f'temp_test_{args.run_name}/*.pt')
         else: # split the training set into training and test set
             test_bags_path = train_bags_path[:int(args.split*len(train_bags_path))]
             train_bags_path = train_bags_path[int(args.split*len(train_bags_path)):]

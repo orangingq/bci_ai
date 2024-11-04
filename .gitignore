@@ -22,8 +22,7 @@ WSI_temp_files/
 simclr/runs
 simclr/all_patches.csv
 test/
-temp_train
-temp_test
+temp_*
 weights/
 .ipynb_checkpoints
 .ipynb_checkpoints/

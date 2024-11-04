@@ -33,7 +33,8 @@ class BClassifier(nn.Module):
     def __init__(self, input_size, output_class, dropout_v=0.0, nonlinear=True, passing_v=False): # K, L, N
         super(BClassifier, self).__init__()
         if nonlinear:
-            self.q = nn.Sequential(nn.Linear(input_size, 128), nn.ReLU(), nn.Linear(128, 128), nn.Tanh())
+            self.q = nn.Sequential(nn.Linear(input_size, input_size//4), nn.ReLU(), nn.Linear(input_size//4, 128), nn.Tanh())
+            # self.q = nn.Sequential(nn.Linear(input_size, 128), nn.ReLU(), nn.Linear(128, 128), nn.Tanh())
             # self.q = nn.Sequential(nn.Linear(input_size, 128), nn.Linear(128, 128), nn.Tanh())
         else:
             self.q = nn.Linear(input_size, 128)
