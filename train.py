@@ -34,7 +34,6 @@ def get_bag_feats(csv_file_df, args):
 
 def generate_pt_files(args, df, type):
     temp_dir = f"temp_{type}_{args.run_name}"
-    shutil.rmtree(temp_dir, ignore_errors=True)
     if os.path.exists(temp_dir) and len(os.listdir(temp_dir)) > 0:
         print(f'Intermediate {type}ing files already exist : {temp_dir}. Skipping creation.')
         return

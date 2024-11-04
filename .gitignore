@@ -33,3 +33,5 @@ abmil.py
 # Exclude the following files
 !thumbnails/framework.png
 !datasets/acrobat/meta_data/acrobat_label.csv
+!test/resnet18_finetune/*
+!simclr/runs/resnet18_finetune*
