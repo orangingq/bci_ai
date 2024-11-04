@@ -8,6 +8,8 @@
 *.zip
 *.csv
 *.sh
+*.json
+
 
 # cache
 .vscode
@@ -19,9 +21,12 @@ logs
 datasets/
 embedder/
 WSI_temp_files/
-simclr/runs
+simclr/runs/resnet50*
+simclr/runs/resnet18_scratch*
 simclr/all_patches.csv
-test/
+test/resnet50*
+test/resnet18_scratch*
+test/output
 temp_*
 weights/
 .ipynb_checkpoints
