@@ -451,6 +451,8 @@ def main():
             optimal_thresh = item[1]
             roc_save_path = path.get_test_path(run_name=args.run_name) + f'/roc_curve_{i}.png'
             test_loss_bag, avg_score, aucs, thresholds_optimal, test_predictions, test_labels = test(args, test_bags_path, best_model.cuda(), criterion, thresholds=optimal_thresh, return_predictions=True, save_path=roc_save_path)
+            print('\n\r Test loss: %.4f, average Acc: %.4f, \n\tAUC: ' % 
+                (test_loss_bag, avg_score) + '\t'.join('[class {}] {:.4f}'.format(*k) for k in enumerate(aucs))) 
             fold_predictions.append(test_predictions)
         predictions_stack = np.stack(fold_predictions, axis=0)
         mode_result = mode(predictions_stack, axis=0)

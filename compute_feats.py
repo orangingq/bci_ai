@@ -250,9 +250,9 @@ def main():
         bags_path = path.get_patch_dir(args.dataset, f'single_{args.type}') + '/*/*'
     if args.run_name is None:
         args.run_name = args.weights_high.split("_high")[0]
-    feats_path = path.get_feature_dir(args.dataset, run_name=args.run_name, type=args.type, exists=True) #TODO
+    feats_path = path.get_feature_dir(args.dataset, run_name=args.run_name, type=args.type, exists=False) 
     print('run_name:', args.run_name, '\nbags_path:', bags_path, 'feats_path:', feats_path) 
-     
+
     bags_list = glob.glob(bags_path)
     
     if args.magnification == 'tree':
