@@ -1,5 +1,4 @@
-import shutil
-from . import dsmil as mil
+import dsmil as mil
 from utils import path
 
 import torch
@@ -7,7 +6,6 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 import torchvision.models as models
 import torchvision.transforms.functional as VF
-from torchvision import transforms
 
 import sys, argparse, os, glob, copy
 import pandas as pd
@@ -256,7 +254,7 @@ def main():
         compute_tree_feats(args, bags_list, i_classifier_l, i_classifier_h, save_path=feats_path)
     else:
         compute_feats(args, bags_list, i_classifier, feats_path, args.magnification)
-    class_dirs = sorted(glob.glob(os.path.join(feats_path, '*/'))) # dsml-wsi/datasets/acrobat/{run_name}/*/
+    class_dirs = sorted(glob.glob(os.path.join(feats_path, '*/'))) # datasets/acrobat/features/{run_name}/*/
     all_df = []
     for i, class_dir in enumerate(class_dirs):
         label = class_dir.split(os.path.sep)[-2]
@@ -264,12 +262,12 @@ def main():
         bag_df = pd.DataFrame(bag_csvs)
         bag_df['label'] = i 
         csv_file = os.path.join(feats_path, label+'.csv')
-        bag_df.to_csv(csv_file, index=False) # dsmil-wsi/datasets/acrobat/{run_name}/{label}.csv
+        bag_df.to_csv(csv_file, index=False) # datasets/acrobat/features/{run_name}/{label}.csv
         all_df.append(bag_df)
     bags_path = pd.concat(all_df, axis=0, ignore_index=True)
     bags_path = shuffle(bags_path)
     csv_file = os.path.join(feats_path, args.dataset+'.csv')
-    bags_path.to_csv(csv_file, index=False) # dsmil-wsi/datasets/acrobat/{run_name}/acrobat.csv : aggregated all (csv_file_path, label) pairs
+    bags_path.to_csv(csv_file, index=False) # datasets/acrobat/features/{run_name}/acrobat.csv : aggregated all (csv_file_path, label) pairs
     
 if __name__ == '__main__':
     main()

@@ -1,16 +1,50 @@
+import math
 import torch
 import tifffile as tiff
 import argparse, os, glob, json
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from skimage import transform
+from skimage import transform, exposure
 
 from utils import path
-from . import dsmil as mil
+import dsmil as mil
 
-def draw_img(slide_name, ins_prediction, bag_prediction, pos_arr):
+def draw_patch(slide_name, ab, pos):
+    type = slide_name.split('_')[-1]
+    if type == 'val': type = 'train'
+    patch = path.get_raw_patch_file(slide_name, pos=pos, mag='high')
+    with open(patch, 'rb') as f:
+        patch_img = plt.imread(f)
+        img_shape = patch_img.shape
+    
+    # Create a color map for the predictions  
+    color_map = np.stack([ab, ab, ab], axis=-1)
+    color_map = transform.resize(color_map, (img_shape[0], img_shape[1]), order=0)
+    color_map = exposure.rescale_intensity(color_map, out_range=(0, 255))
+
+    # Overlay the color map on the WSI image
+    fig, ax = plt.subplots()
+    ax.axis('off')
+    ax.imshow(patch_img.astype(np.uint8))
+    image_path = path.get_test_path('output') + f'/{slide_name}_{pos[0]}_{pos[1]}.png'
+    plt.savefig(image_path, bbox_inches='tight', pad_inches=0)
+    print(f"Patch image saved at : {image_path}")
+    ax.imshow(patch_img.astype(np.uint8), alpha=0.7)
+    ax.imshow(color_map.astype(np.uint8), alpha=0.3)
+    
+    # Save the image
+    image_path_attention = path.get_test_path('output') + f'/{slide_name}_{pos[0]}_{pos[1]}_attention.png'
+    plt.savefig(image_path_attention, bbox_inches='tight', pad_inches=0)
+    plt.close(fig)
+    print(f"Patch image saved at : {image_path_attention}")
+    return
+
+
+def draw_wsi(slide_name, ins_prediction, pos_arr):
     class_name = ['1', '2', '3', 'neg']
+    
+    # Read the WSI image 
     wsi_img_path = path.get_raw_WSI_file(slide_name)
     with tiff.TiffFile(wsi_img_path) as tif:
         resolution = 3
@@ -18,34 +52,35 @@ def draw_img(slide_name, ins_prediction, bag_prediction, pos_arr):
         wsi_img = tif.pages[resolution].asarray()
         img_shape = wsi_img.shape
     
-    # Create a color map for the predictions  
+    # Save the WSI image
+    plt.axis('off')
+    image_path = path.get_test_path('output') + f'/{slide_name}.png'
+    plt.imsave(image_path, wsi_img.astype(np.uint8))
+    print(f"WSI Image saved at : {image_path}")
+    
+    # Create a color map for the predicted results  
     color_map_shape = [img_shape[0]//tile_size, img_shape[1]//tile_size, 3]
-    color_map = np.zeros(color_map_shape)
+    color_map = np.full(color_map_shape, 255, dtype=np.uint8)
     colors = [np.array([255, 0, 0]), np.array([0, 255, 0]), np.array([0, 0, 255]), np.array([255, 255, 255])]
     for pred, pos in zip(ins_prediction, pos_arr):
         color_map[pos[1]-1, pos[0]-1] = colors[pred]
         
-    # Overlay the color map on the WSI image
+    # Resize the color map to the WSI image size
     color_map = transform.resize(color_map, (wsi_img.shape[0],wsi_img.shape[1]), order=0)
-    # wsi_img = exposure.rescale_intensity(wsi_img, out_range=(0, 255))
-
-    # Add text to image
-    text = f"Prediction: {class_name[bag_prediction]}"
+    
     fig, ax = plt.subplots()
-    ax.imshow(wsi_img.astype(np.uint8), alpha=0.4)
-    ax.imshow(color_map.astype(np.uint8), alpha=0.6)
-    text_x, text_y = 30, 30
-    ax.text(text_x, text_y, text, fontsize=15, color='white', ha='left', va='top')
+    # make the background transparent
+    color_map = np.dstack((color_map, (color_map.sum(axis=-1) < 255*3).astype(np.uint8) * 255))
     # Add legend for colors
     legend_elements = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=colors[i]/255, markersize=10, label=class_name[i]) for i in range(len(class_name))]
     ax.legend(handles=legend_elements, loc='lower left', fontsize='large')
     ax.axis('off')
     
-    # Save the image
-    image_path = path.get_test_path('output') + f'/{slide_name}.png'
-    plt.savefig(image_path, bbox_inches='tight', pad_inches=0)
+    # Save the color map image
+    image_path = path.get_test_path('output') + f'/{slide_name}_colormap.png'
+    plt.imsave(image_path, color_map.astype(np.uint8))
     plt.close(fig)
-    print(f"Image saved at : {image_path}")
+    print(f"Color map image saved at : {image_path}")
     return
 
 
@@ -132,7 +167,8 @@ def main():
     milnet.eval()
     with torch.no_grad():
         assert not torch.isnan(feats).any(), f"bag_feats contains {torch.isnan(feats).sum()} NaN elements"
-        ins_prediction, bag_prediction, A, _ = milnet(feats.cuda())
+        ins_prediction, bag_prediction, A, B = milnet(feats.cuda())
+    
     
     ins_prediction = torch.sigmoid(ins_prediction).squeeze().cpu().numpy()
     bag_prediction = torch.sigmoid(bag_prediction).squeeze().cpu().numpy()
@@ -143,9 +179,15 @@ def main():
     assert ins_prediction.max() < args.num_classes, f"ins_prediction = {ins_prediction.max()} >= args.num_classes = {args.num_classes}"
     assert bag_prediction < args.num_classes, f"bag_prediction = {bag_prediction} >= args.num_classes = {args.num_classes}"
 
-    draw_img(args.slide_name, ins_prediction, bag_prediction, pos_arr)
-    #TODO : A ? 
-    return
+    ab = torch.matmul(A, B.squeeze())
+    ab = ab.reshape(ab.size(0), int(math.sqrt(ab.size(1))), int(math.sqrt(ab.size(1)))).cpu().numpy()
+    assert len(ab) == len(pos_arr), f"ab.shape = {ab.shape} != len(pos_arr) = {len(pos_arr)}"
+    # draw_patch(args.slide_name, ab[0], pos_arr[0])
+    draw_wsi(args.slide_name, ins_prediction, bag_prediction, pos_arr)
+
+    image_path = path.get_test_path('output') + f'/{args.slide_name}.png'
+
+    return label, image_path
     
 
 if __name__ == '__main__':

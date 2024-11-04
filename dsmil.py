@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.autograd import Variable
 
 class FCLayer(nn.Module):
     def __init__(self, in_size, out_size=1):

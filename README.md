@@ -1,15 +1,21 @@
-# Breast Cancer Classification
+# Breast Cancer WSI Classification
+This work is a variation of `https://github.com/binli123/dsmil-wsi`, adapting the ACROBAT dataset to fit the breast cancer classification task. 
 
-![framework](framework.png)
+Although the code has been slightly modified, the basic model structure is the same as the original author's model. 
+
+ ([Dual-stream Multiple Instance Learning Network for Whole Slide Image Classification with Self-supervised Contrastive Learning](https://arxiv.org/abs/2011.08939) [CVPR 2021, accepted for oral presentation]).
+
+![framework](thumbnails/framework.png)!
 
 ## Prerequisites
+The codes below is written for Linux OS. 
 
 ### Git Clone
 
 ```bash
-# 'bci_ai' git repository 다운로드
+# 'bci_ai' git repository download
 git clone https://github.com/orangingq/bci_ai.git
-# 다운 받은 bci_ai 폴더로 이동
+# move to the downloaded bci_ai folder
 cd bci_ai
 ```
 
@@ -17,199 +23,154 @@ cd bci_ai
 
 ```bash
 # 콘다 가상환경 생성 ('bci_ai')
-conda env create --file environment.yml
+    conda env create --file environment/conda_env.yml
 # bci_ai 가상환경 활성화
 conda activate bci_ai
 ```
 
 ## Download Dataset
 
-- BCSS dataset : https://drive.google.com/drive/folders/1zqbdkQF8i5cEmZOGmbdQm-EP8dRYtvss?usp=sharing
 - ACROBAT : https://snd.se/en/catalogue/dataset/2022-190-1
-- BCI dataset : https://github.com/bupt-ai-cz/BCI/blob/main/download_dataset.md
 
-Your downloaded dataset (ACROBAT, BCI dataset, BCSS dataset) should follow below structure:
+#### 1. Your downloaded ACROBAT dataset should follow below structure:
 
 ```
 BCI_AI (root directory)
     └── dataset
-        ├── acrobat
-        │   └── train
-        │       └── xxx_{img_type}_train.tif
-        │
-        └── BCI_dataset
-            ├── HE
-            │   ├── train
-            │   │   └── xxxxx_train_#.png
-            │   └── test
-            │       └── xxxxx_test_#.png
-            └── IHC
-                ├── train
-                │   └── xxxxx_train_#.png
-                └── test
-                    └── xxxxx_test_#.png
+        └── acrobat
+            ├── meta_data 
+            │   └── acrobat_label.csv
+            ├── train 
+            │   └── xxx_{img_type}_train.tif
+            ├── valid 
+            │   └── xxx_{img_type}_valid.tif
+            └── test
+                └── xxx_{img_type}_test.tif
 ```
 
-\* BCSS dataset is not supported yet.
-
-## Download Pretrained segmentation model weight
-
-```bash
-# Download
-wget https://github.com/Dylan-H-Wang/msf-wsi/releases/download/v0.1/bcss_fold0_ft_model.pth.tar
-# move file into 'utils' directory
-mv bcss_fold0_ft_model.pth.tar BCSS_segmentation/bcss_fold0_ft_model.pth.tar
+#### 2. Place ACROBAT WSI files as `datasets\acrobat\[CATEGORY_NAME]\[SLIDE_NAME].tif`.
+Rename the negative class (0) to 'neg'. 
 ```
-
-## How to Run? (Patch Classification)
-
-```python
-# for CPU-only
-python -m main {--optional arguments}
-
-# for CUDA
-CUBLAS_WORKSPACE_CONFIG=:16:8 python -m main {--optional arguments}
+BCI_AI (root directory)
+    └── dataset
+        └── acrobat
+            ├── 1 # class 1
+            │   └── xxx_{img_type}_{type}.tif
+            ├── 2 # class 2
+            │   └── xxx_{img_type}_{type}.tif
+            ├── 3 # class 3
+            │   └── xxx_{img_type}_{type}.tif
+            └── neg # class 0
+                └── xxx_{img_type}_{type}.tif
 ```
-
-`CUBLAS_WORKSPACE_CONFIG=:16:8` is added to fix the random seed.
-
-#### Ex. To use pretrained (w/o finetuning) model for classification task in CPU
-
-```bash
-python -m main --model_name=ViT
-```
-
-#### Ex. To finetune the classification model with AdamW optimizer with GPUs
-
-```bash
-CUBLAS_WORKSPACE_CONFIG=:16:8 python -m main --finetune --optimizer_name=AdamW
-```
-
-### Options
-
-- `seed :int = 42`
-- `dataset :str = 'BCI_dataset'`
-- `aug_level :int = 0`
-  - 0 : no augmentation, 1: simple augmentation (rotation), 2: complex augmentation
-- `image_size :int = 224`
-- `model_name :str = 'ViT'`
-  - one of 'ViT' / 'ResNet18' / 'ResNet34' / 'ResNet50' / 'ResNet101'
-- `optimizer_name :str = 'Adam'`
-  - one of 'Adam' / 'AdamW'
-- `learning_rate :float = 1e-3`
-- `log_freq :int = 30`
-  - log accuracy every `log_freq` batches
-- `finetune :bool = False`
-- `load_dir :str = None`
-  - default : load pretrained weight
-- `save_dir :str = None`
-  - default : not save
 
 ## How to Run? (WSI Classification using DSMIL)
 
-0. Create and activate Anaconda environment (`dsmil`)
 
+#### 2. Crop patches.
+  - **default setting** : 10x, 2.5x magnification (-m 1 3 -b 20 -d acrobat -v tif)
+    ```bash 
+    python -m deepzoom_tiler --type=train 
+    python -m deepzoom_tiler --type=test 
+    ```
+  - other options (ex. 10x magnification only)
     ```bash
-    # 콘다 가상환경 생성 ('dsmil')
-    conda env create --file dsmil-wsi/env.yml
-    # dsmil 가상환경 활성화
-    conda activate dsmil
+    python -m deepzoom_tiler -m 1 -b 20 -d acrobat -v tif 
     ```
 
-1. Place ACROBAT WSI files as `datasets\acrobat\[CATEGORY_NAME]\[SLIDE_NAME].tif`.
-2. Crop patches.
-    - **default setting** : 10x, 2.5x magnification (-m 1 3 -b 20 -d acrobat -v tif)
-      ```bash 
-      python -m dsmil-wsi.deepzoom_tiler --type=train 
-      python -m dsmil-wsi.deepzoom_tiler --type=test 
-      ```
-    - other options (ex. 10x magnification only)
-      ```bash
-      python -m dsmil-wsi.deepzoom_tiler -m 1 -b 20 -d acrobat -v tif 
-      ```
-
-3. Train a SimCLR embedder.
+#### 3. Train a SimCLR embedder.
     
-    Move to simclr directory first. (`cd dsmil-wsi/simclr`)
-    > `--level=high` for 10x magnification (higher mag.) images, `--level=low` for 2.5x magnification (lower mag.) images
-
-    - Backbone ResNet18, train from scratch
-      ```bash
-      python run.py --level=high --batch_size=256 --epoch=20 --log_dir=resnet18_scratch_high
-      python run.py --level=low --batch_size=256 --epoch=50 --log_dir=resnet18_scratch_low
-      ```
-    - Backbone ResNet34, train from scratch
-      ```bash
-      python run.py --level=high --batch_size=128 --epoch=10 --model=resnet34 --log_dir=resnet34_scratch_high
-      python run.py --level=low --batch_size=128 --epoch=20 --model=resnet34 --log_dir=resnet34_scratch_low
-      ```
-    - Backbone ResNet50, train from scratch
-      ```bash
-      python run.py --level=high --batch_size=128 --epoch=20 --model=resnet50 --log_dir=resnet50_scratch_high
-      python run.py --level=low --batch_size=128 --epoch=50 --model=resnet50 --log_dir=resnet50_scratch_low
-      ```
-    - Backbone ResNet50, use pretrained weights
-      ```bash
-      python run.py --level=high --batch_size=128 --epoch=20 --model=resnet50 --pretrained --log_dir=resnet50_finetune_high
-      python run.py --level=low --batch_size=128 --epoch=50 --model=resnet50 --pretrained --log_dir=resnet50_finetune_low
-      ```
-
-4. Compute features using the embedder.
-
-    Move back to bci_ai folder. (`cd ../..`)
-
-- Case 0 : using SimCLR of ResNet18 as backbone & pretrained on ImageNet
-
-  - Final results:
-    - Mean Accuracy: 0.48175
-    - Mean AUC per Class (1,2,3,neg) = (0.5959, 0.6191, 0.7655, 0.5716)
-
+Move to simclr directory first. (`cd simclr`)
+**Code Examples**
+- Backbone ResNet18, train from scratch
   ```bash
-  python -m dsmil-wsi.compute_feats --weights_low=ImageNet --weights_high=ImageNet --backbone=resnet18 --norm_layer=batch
+  python run.py --level=high --batch_size=256 --epoch=20 --log_dir=resnet18_scratch_high
+  # Model weights will be saved in 'simclr/runs/resnet18_scratch_low'
+  python run.py --level=low --batch_size=256 --epoch=50 --log_dir=resnet18_scratch_low
+  ```
+  > Model weights will be saved in `simclr/runs/{log_dir}`
+
+  > `--level=high` for 10x magnification (higher mag.) images, `--level=low` for 2.5x magnification (lower mag.) images
+
+- Backbone ResNet50, finetune based on the ImageNet pretrained weights
+  ```bash
+  python run.py --level=high --batch_size=128 --epoch=20 --model=resnet50 --pretrained --log_dir=resnet50_finetune_high
+  python run.py --level=low --batch_size=128 --epoch=50 --model=resnet50 --pretrained --log_dir=resnet50_finetune_low
+  ```
+  > This training process (especially for bigger models) might take a day. 
+
+#### 4. Compute features using the embedder.
+
+Move back to bci_ai folder. (`cd ..`)
+
+<table>
+  <tr>
+    <th>Backbone</th><th>Dataset</th><th>Accuracy</th>
+    <th colspan="4">Mean AUC per IHC Class</th>
+  </tr>
+  <tr>
+    <th></th><th></th>
+    <th></th><th>1</th><th>2</th><th>3</th><th>0</th>
+  </tr>
+  <tr>
+    <th rowspan="3">ResNet18</th><th>ImageNet</th><td>0.5536</td><td>0.7203</td><td>0.8340</td><td>0.9533</td><td>0.8357</td>
+  </tr>
+  <tr>
+    <th>ACROBAT</th><td>0.5714</td><td>0.7247</td><td>0.8400</td><td>0.8727</td><td>0.6760</td>
+  </tr>
+  <tr>
+    <th>Both</th><td>0.6607</td><td>0.7044</td><td>0.9189</td><td>0.9325</td><td>0.8363</td>
+  </tr>
+  <tr>
+    <th rowspan="3">ResNet50</th><th>ImageNet</th><td>0.5536</td><td>0.6624</td><td>0.8010</td><td>0.9318</td><td>0.8172</td>	
+  </tr>
+  <tr>
+    <th>ACROBAT</th><td>0.4821</td><td>0.5217</td><td>0.6675</td><td>0.8682</td><td>0.8081</td>
+  </tr>
+  <tr>
+    <th>Both</th><td>0.1607</td><td>0.6139</td><td>0.6285</td><td>0.9889</td><td>0.6847</td>
+  </tr>
+</table>
+<style>
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+</style>
+
+**Code Examples**
+
+> Add `--type=test` option when computing features of test dataset.
+
+> Put `weights_name` after the weights option `--weights_low={weights_name}`, which you put when training SimCLR at Step 3 (`--log_dir={weights_name}`). 
+
+> You need to set the norm layer as batch norm (`--norm_layer=batch`) when finetuning / using pretrained ImageNet weights. 
+
+> The computed features will be saved at `datasets/features/{run_name}`.
+
+- Example 1 : using SimCLR of ResNet18 as backbone & pretrained on ImageNet
+  ```bash
+  python -m compute_feats --weights_low=ImageNet --weights_high=ImageNet --backbone=resnet18 --norm_layer=batch --batch_size=256 --run_name={resnet18_imgnet}
   ```
 
-- Case 1 : using SimCLR of ResNet50 as backbone & pretrained on ImageNet
-
-  - Final results:
-    - Mean Accuracy: 0.5071
-    - Mean AUC per Class (1,2,3,neg) = (0.5855, 0.5934, 0.8348, 0.5302)
+- Example 2 : using SimCLR of ResNet18 as backbone & finetuned with ACROBAT based on ImageNet pretrained weights
 
   ```bash
-  python -m dsmil-wsi.compute_feats --weights_low=ImageNet --weights_high=ImageNet --backbone=resnet50 --norm_layer=batch 
+  python -m compute_feats --weights_low={resnet18_finetune_low} --weights_high={resnet18_finetune_high} --backbone=resnet18 --norm_layer=batch --batch_size=256 --run_name={resnet18_finetune}
   ```
 
-- Case 2 : using SimCLR of ResNet18 as backbone & trained from the scratch on ACROBAT
 
-  - Final results:
-    - Mean Accuracy: 0.5637
-    - Mean AUC per Class (1,2,3,neg) = (0.6292, 0.7237, 0.8934, 0.7728)
+- Example 3 : using SimCLR of ResNet50 as backbone & trained from the scratch on ACROBAT
 
   ```bash
-  python -m dsmil-wsi.compute_feats --weights_low=resnet18_scratch_low --weights_high=resnet18_scratch_high 
+  python -m compute_feats --weights_low={resnet50_scratch_low} --weights_high={resnet50_scratch_high} --backbone=resnet50 --norm_layer=batch
   ```
+  > If you don't specify `run_name` option, it will automatically follow the weights name. 
 
-- Case 3 : using SimCLR of ResNet50 as backbone & trained from the scratch on ACROBAT
-
-  - Final results:
-    - Mean Accuracy:
-    - Mean AUC per Class (1,2,3,neg) =
-
-  ```bash
-  python -m dsmil-wsi.compute_feats --weights_low=resnet50_scratch_low --weights_high=resnet50_scratch_high --backbone=resnet50 {--norm_layer=batch}
-  ```
-
-- Case 4 : using SimCLR of ResNet50 as backbone & finetuned with ACROBAT based on ImageNet pretrained weights
-
-  - Final results:
-    - Mean Accuracy:0.46287
-    - Mean AUC per Class (1,2,3,neg) = (0.5801, 0.5845, 0.8186, 0.6009)
-
-  ```bash
-  python -m dsmil-wsi.compute_feats --weights_low=resnet50_finetune_low --weights_high=resnet50_finetune_high --backbone=resnet50 --norm_layer=batch
-  ```
-
-5. Training.
+#### 5. Training.
 
 ```bash
-CUBLAS_WORKSPACE_CONFIG=:16:8 python dsmil-wsi/train_tcga.py --dataset=acrobat --num_classes=4
+python -m train --run_name={resnet18_scratch}
 ```
+> Set `run_name` option as you put in step 4. 

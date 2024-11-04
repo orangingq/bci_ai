@@ -13,6 +13,22 @@ def get_data_dir(data:str='acrobat') -> str:
     return path
 
 
+def get_raw_patch_file(slide_name:str, label:str=None, slide_format:str='jpeg', pos:list[int]=[0, 0], mag:str='low') -> str:
+    '''get raw (unlabeled) WSI files'''
+    assert mag in ['low', 'high'], f'Invalid mag {mag}'
+    patient, imgtype, type = slide_name.split('_')
+    col, row = pos
+    if type == 'val': type = 'train'
+    if label is None: label = '*'
+    if mag == 'low':
+        file_path = f'{get_patch_dir("acrobat", f"pyramid_{type}")}/{label}/{slide_name}/{col}_{row}.{slide_format}'
+    else:
+        file_path = f'{get_patch_dir("acrobat", f"pyramid_{type}")}/{label}/{slide_name}/{col//4}_{row//4}/{col}_{row}.{slide_format}'
+    file = glob.glob(file_path) 
+    assert len(file) == 1, f'retrieved file : {file}'
+    return file[0]
+
+
 def get_raw_WSI_file(slide_name:str, label:str=None, slide_format:str='tif'):
     '''get raw (unlabeled) WSI files'''
     patient, imgtype, type = slide_name.split('_')
@@ -66,10 +82,6 @@ def get_patch_dir(data:str='acrobat', type:str='pyramid', make:bool=False) -> st
     assert os.path.exists(path), f'Patch Path {path} does not exist'
     return path
 
-### dsml-wsi
-def get_dsmil_root() -> str: # 'dsmil-wsi'
-    '''Return the root directory of dsmil-wsi (.../dsmil-wsi)'''
-    return os.path.join(get_project_root(), 'dsmil-wsi')
 
 def get_feature_dir(data:str='acrobat', run_name:str='', type:str='train', exists:bool=True, make:bool=True) -> str:
     '''
@@ -80,9 +92,9 @@ def get_feature_dir(data:str='acrobat', run_name:str='', type:str='train', exist
     assert type in ['train', 'test'], f'Invalid type {type}'
     if data == 'acrobat':
         assert len(run_name) > 0, f'Specify run_name {run_name}'
-        path = os.path.join(get_dsmil_root(), 'datasets', data, run_name, type)
+        path = os.path.join(get_project_root(), 'datasets', data, 'features', run_name, type)
     else:
-        path = os.path.join(get_dsmil_root(), 'datasets', data)
+        path = os.path.join(get_project_root(), 'datasets', data, 'features')
     assert os.path.exists(path) == exists, f'Feature Path {path}{" does not" if exists else ""} exist'
     if make and not os.path.exists(path):
         os.makedirs(path)
@@ -91,9 +103,9 @@ def get_feature_dir(data:str='acrobat', run_name:str='', type:str='train', exist
 def get_simclr_chkpt_path(run_name:str=None) -> str:
     '''run_name: ex. 'Oct14_22-27-55_server' '''
     if run_name:
-        path = os.path.join(get_dsmil_root(), 'simclr', 'runs', run_name, 'checkpoints', 'model.pth')
+        path = os.path.join(get_project_root(), 'simclr', 'runs', run_name, 'checkpoints', 'model.pth')
     else:
-        path = glob.glob(os.path.join(get_dsmil_root(), 'simclr', 'runs', '*', 'checkpoints', '*.pth'))[-1]
+        path = glob.glob(os.path.join(get_project_root(), 'simclr', 'runs', '*', 'checkpoints', '*.pth'))[-1]
     assert os.path.exists(path), f'SimCLR Checkpoint Path {path} does not exist'
     return path
 
@@ -102,10 +114,10 @@ def get_embedder_path(data:str='acrobat', filename:str=None) -> str:
     data='acrobat' 
     Return path to the embedder checkpoint. If filename is None, return the directory path.
     '''
-    path = os.path.join(get_dsmil_root(), 'embedder', data)
+    path = os.path.join(get_project_root(), 'embedder', data)
     os.makedirs(path, exist_ok=True)
     if filename:
-        path = os.path.join(get_dsmil_root(), 'embedder', data, filename)
+        path = os.path.join(get_project_root(), 'embedder', data, filename)
         assert os.path.exists(path), f'Embedder Checkpoint Path {path} does not exist'
     return path
 
@@ -114,7 +126,7 @@ def get_test_path(run_name:str=None, make=True)->str:
     Return the test directory path. If run_name is None, return the root test directory path.
     run_name: ex. 'resnet18_finetune'
     '''
-    path = os.path.join(get_dsmil_root(), 'test')
+    path = os.path.join(get_project_root(), 'test')
     if run_name is not None:
         if make and not os.path.exists(path):
             os.makedirs(path)
