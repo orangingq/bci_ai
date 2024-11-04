@@ -88,6 +88,11 @@ def compute_tree_feats(args, bags_list, embedder_low, embedder_high, save_path=N
     num_bags = len(bags_list)
     with torch.no_grad():
         for i in range(0, num_bags): 
+            bag_dir = os.path.join(save_path, bags_list[i].split(os.path.sep)[-2])
+            save_file = os.path.join(bag_dir, bags_list[i].split(os.path.sep)[-1]+'.csv')
+            if os.path.exists(save_file):
+                print('Already computed: ', save_file)
+                continue
             low_patches = get_patch_list(bags_list[i], 'low')
             feats_list = []
             feats_tree_list = []
@@ -245,8 +250,8 @@ def main():
         bags_path = path.get_patch_dir(args.dataset, f'single_{args.type}') + '/*/*'
     if args.run_name is None:
         args.run_name = args.weights_high.split("_high")[0]
-    feats_path = path.get_feature_dir(args.dataset, run_name=args.run_name, type=args.type, exists=False)
-    print('run_name:', args.run_name, '\nbags_path:', bags_path, 'feats_path:', feats_path)
+    feats_path = path.get_feature_dir(args.dataset, run_name=args.run_name, type=args.type, exists=True) #TODO
+    print('run_name:', args.run_name, '\nbags_path:', bags_path, 'feats_path:', feats_path) 
      
     bags_list = glob.glob(bags_path)
     
