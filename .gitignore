@@ -25,7 +25,8 @@ simclr/runs/resnet50*
 simclr/runs/resnet18_scratch*
 simclr/all_patches.csv
 test/resnet50*
-test/resnet18_scratch*
+test/resnet18_scratch
+test/resnet18_finetune
 test/output
 temp_*
 weights/
@@ -38,5 +39,5 @@ abmil.py
 # Exclude the following files
 !thumbnails/framework.png
 !datasets/acrobat/meta_data/acrobat_label.csv
-!test/resnet18_finetune/*
+!test/resnet18_imgnet/*
 !simclr/runs/resnet18_finetune*
