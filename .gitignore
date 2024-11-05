@@ -8,22 +8,29 @@
 *.zip
 *.csv
 *.sh
+*.json
+
 
 # cache
 .vscode
 __pycache__
-logs
+logs/result
+logs/result2
+logs/result3
 
 
 # intermediate files
 datasets/
 embedder/
 WSI_temp_files/
-simclr/runs
+simclr/runs/resnet50*
+simclr/runs/resnet18_scratch*
 simclr/all_patches.csv
-test/
-temp_train
-temp_test
+# test/resnet50*
+# test/resnet18_scratch
+# test/resnet18_finetune
+test/output
+temp_*
 weights/
 .ipynb_checkpoints
 .ipynb_checkpoints/
@@ -34,3 +41,5 @@ abmil.py
 # Exclude the following files
 !thumbnails/framework.png
 !datasets/acrobat/meta_data/acrobat_label.csv
+# !test/resnet18_imgnet/*
+!simclr/runs/resnet18_finetune*

@@ -7,13 +7,13 @@ import argparse
 
 def generate_csv(args):
     if args.level=='high' and args.multiscale==1:
-        path_temp = os.path.join('../..', 'datasets', args.dataset, 'pyramid_train', '*', '*', '*', '*.jpeg')
+        path_temp = os.path.join('..', 'datasets', args.dataset, 'pyramid_train', '*', '*', '*', '*.jpeg')
         patch_path = glob.glob(path_temp) # /class_name/bag_name/5x_name/*.jpeg
     if args.level=='low' and args.multiscale==1:
-        path_temp = os.path.join('../..', 'datasets', args.dataset, 'pyramid_train', '*', '*', '*.jpeg')
+        path_temp = os.path.join('..', 'datasets', args.dataset, 'pyramid_train', '*', '*', '*.jpeg')
         patch_path = glob.glob(path_temp) # /class_name/bag_name/*.jpeg
     if args.multiscale==0:
-        path_temp = os.path.join('../..', 'datasets', args.dataset, 'single_train', '*', '*', '*.jpeg')
+        path_temp = os.path.join('..', 'datasets', args.dataset, 'single_train', '*', '*', '*.jpeg')
         patch_path = glob.glob(path_temp) # /class_name/bag_name/*.jpeg
     print('patch_path:', os.path.abspath(path_temp))
     df = pd.DataFrame(patch_path)
@@ -33,7 +33,10 @@ def main():
     args = parser.parse_args()
     # Load config file and dataset
     config = yaml.load(open("config.yaml", "r"), Loader=yaml.FullLoader)
-    config['gpu_ids']=str(os.environ['CUDA_VISIBLE_DEVICES'])
+    if os.environ['CUDA_VISIBLE_DEVICES']:
+        config['gpu_ids']=str(os.environ['CUDA_VISIBLE_DEVICES'])
+    else:
+        config['gpu_ids']='0'
     config['n_gpu']=len(config['gpu_ids'])
     config['batch_size']=args.batch_size
     config['epochs']=args.epochs

@@ -5,10 +5,10 @@ Although the code has been slightly modified, the basic model structure is the s
 
  ([Dual-stream Multiple Instance Learning Network for Whole Slide Image Classification with Self-supervised Contrastive Learning](https://arxiv.org/abs/2011.08939) [CVPR 2021, accepted for oral presentation]).
 
-![framework](thumbnails/framework.png)!
+![framework](thumbnails/framework.png)
 
 ## Prerequisites
-The codes below is written for Linux OS. 
+The codes below are written for Linux OS. 
 
 ### Git Clone
 
@@ -22,9 +22,9 @@ cd bci_ai
 ### Anaconda Environment
 
 ```bash
-# 콘다 가상환경 생성 ('bci_ai')
+# create 'bci_ai' environment 
     conda env create --file environment/conda_env.yml
-# bci_ai 가상환경 활성화
+# activate the environment
 conda activate bci_ai
 ```
 
@@ -67,7 +67,7 @@ BCI_AI (root directory)
 ## How to Run? (WSI Classification using DSMIL)
 
 
-#### 2. Crop patches.
+#### 1. Crop patches.
   - **default setting** : 10x, 2.5x magnification (-m 1 3 -b 20 -d acrobat -v tif)
     ```bash 
     python -m deepzoom_tiler --type=train 
@@ -78,14 +78,13 @@ BCI_AI (root directory)
     python -m deepzoom_tiler -m 1 -b 20 -d acrobat -v tif 
     ```
 
-#### 3. Train a SimCLR embedder.
+#### 2. Train a SimCLR embedder.
     
 Move to simclr directory first. (`cd simclr`)
 **Code Examples**
 - Backbone ResNet18, train from scratch
   ```bash
   python run.py --level=high --batch_size=256 --epoch=20 --log_dir=resnet18_scratch_high
-  # Model weights will be saved in 'simclr/runs/resnet18_scratch_low'
   python run.py --level=low --batch_size=256 --epoch=50 --log_dir=resnet18_scratch_low
   ```
   > Model weights will be saved in `simclr/runs/{log_dir}`
@@ -99,45 +98,9 @@ Move to simclr directory first. (`cd simclr`)
   ```
   > This training process (especially for bigger models) might take a day. 
 
-#### 4. Compute features using the embedder.
+#### 3. Compute features using the embedder.
 
 Move back to bci_ai folder. (`cd ..`)
-
-<table>
-  <tr>
-    <th>Backbone</th><th>Dataset</th><th>Accuracy</th>
-    <th colspan="4">Mean AUC per IHC Class</th>
-  </tr>
-  <tr>
-    <th></th><th></th>
-    <th></th><th>1</th><th>2</th><th>3</th><th>0</th>
-  </tr>
-  <tr>
-    <th rowspan="3">ResNet18</th><th>ImageNet</th><td>0.5536</td><td>0.7203</td><td>0.8340</td><td>0.9533</td><td>0.8357</td>
-  </tr>
-  <tr>
-    <th>ACROBAT</th><td>0.5714</td><td>0.7247</td><td>0.8400</td><td>0.8727</td><td>0.6760</td>
-  </tr>
-  <tr>
-    <th>Both</th><td>0.6607</td><td>0.7044</td><td>0.9189</td><td>0.9325</td><td>0.8363</td>
-  </tr>
-  <tr>
-    <th rowspan="3">ResNet50</th><th>ImageNet</th><td>0.5536</td><td>0.6624</td><td>0.8010</td><td>0.9318</td><td>0.8172</td>	
-  </tr>
-  <tr>
-    <th>ACROBAT</th><td>0.4821</td><td>0.5217</td><td>0.6675</td><td>0.8682</td><td>0.8081</td>
-  </tr>
-  <tr>
-    <th>Both</th><td>0.1607</td><td>0.6139</td><td>0.6285</td><td>0.9889</td><td>0.6847</td>
-  </tr>
-</table>
-<style>
-  table {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-</style>
 
 **Code Examples**
 
@@ -168,7 +131,7 @@ Move back to bci_ai folder. (`cd ..`)
   ```
   > If you don't specify `run_name` option, it will automatically follow the weights name. 
 
-#### 5. Training.
+#### 4. Training.
 
 ```bash
 python -m train --run_name={resnet18_scratch}

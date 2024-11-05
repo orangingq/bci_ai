@@ -6,11 +6,14 @@ import pandas as pd
 import numpy as np
 from scipy.stats import mode
 from sklearn.utils import shuffle
-from sklearn.metrics import roc_curve, roc_auc_score, balanced_accuracy_score, accuracy_score, hamming_loss
+from sklearn.metrics import roc_curve, roc_auc_score, balanced_accuracy_score, accuracy_score, hamming_loss, confusion_matrix
 from sklearn.model_selection import KFold
 from tqdm import tqdm
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 from utils import path
+from utils.util import random_seed
 import dsmil as mil
 
 def get_bag_feats(csv_file_df, args):
@@ -33,8 +36,7 @@ def get_bag_feats(csv_file_df, args):
     return label, feats, feats_csv_path
 
 def generate_pt_files(args, df, type):
-    temp_dir = f"temp_{type}"
-    shutil.rmtree(temp_dir, ignore_errors=True)
+    temp_dir = f"temp_{type}_{args.run_name}"
     if os.path.exists(temp_dir) and len(os.listdir(temp_dir)) > 0:
         print(f'Intermediate {type}ing files already exist : {temp_dir}. Skipping creation.')
         return
@@ -69,6 +71,9 @@ def train(args, train_df, milnet, criterion, optimizer):
         if bag_prediction.isnan().any():
             print(f"bag_prediction contains {torch.isnan(bag_prediction).sum()} NaN elements")
             # torch.nan_to_num(bag_prediction, nan=0.0)
+        # added softmax
+        bag_label[bag_label==0] = 0.8
+        ins_prediction, bag_prediction = torch.nn.Softmax(dim=1)(ins_prediction), torch.nn.Softmax(dim=1)(bag_prediction)
         max_prediction, _ = torch.max(ins_prediction, 0)        
         bag_loss = criterion(bag_prediction.view(1, -1), bag_label.view(1, -1))
         max_loss = criterion(max_prediction.view(1, -1), bag_label.view(1, -1))
@@ -87,7 +92,7 @@ def dropout_patches(feats, p):
     selected_rows = feats[random_indices]
     return selected_rows
 
-def test(args, test_df, milnet, criterion, thresholds=None, return_predictions=False):
+def test(args, test_df, milnet, criterion, thresholds=None, return_predictions=False, save_path=None):
     milnet.eval()
     total_loss = 0
     test_labels = []
@@ -118,7 +123,7 @@ def test(args, test_df, milnet, criterion, thresholds=None, return_predictions=F
             else: test_predictions.extend([torch.sigmoid(bag_prediction).squeeze().cpu().numpy()])
     test_labels = np.array(test_labels)
     test_predictions = np.array(test_predictions)
-    auc_value, _, thresholds_optimal = multi_label_roc(test_labels, test_predictions, args.num_classes, pos_label=1)
+    auc_value, _, thresholds_optimal = multi_label_roc(test_labels, test_predictions, args.num_classes, pos_label=1, save_path=save_path)
     if thresholds: thresholds_optimal = thresholds
     if args.num_classes==1:
         class_prediction_bag = copy.deepcopy(test_predictions)
@@ -140,7 +145,7 @@ def test(args, test_df, milnet, criterion, thresholds=None, return_predictions=F
     
     return total_loss / len(test_df), avg_score, auc_value, thresholds_optimal
 
-def multi_label_roc(labels, predictions, num_classes, pos_label=1):
+def multi_label_roc(labels, predictions, num_classes, pos_label=1, save_path=None):
     fprs = []
     tprs = []
     thresholds = []
@@ -157,6 +162,7 @@ def multi_label_roc(labels, predictions, num_classes, pos_label=1):
         prediction = np.nan_to_num(prediction, nan=0.0)
         fpr, tpr, threshold = roc_curve(label, prediction, pos_label=1)
         fpr_optimal, tpr_optimal, threshold_optimal = optimal_thresh(fpr, tpr, threshold)
+
         try:
             c_auc = roc_auc_score(label, prediction)
         except ValueError as e:
@@ -166,9 +172,26 @@ def multi_label_roc(labels, predictions, num_classes, pos_label=1):
             else:
                 raise e
 
+        # Plot ROC curve
+        if save_path:
+            class_name = ['1', '2', '3', 'neg'][c]
+            color = ['red', 'green', 'blue', 'gray'][c]
+            plt.plot(fpr, tpr, label=f"Class {class_name} (AUC = {c_auc:.2f})", color=color)
         aucs.append(c_auc)
         thresholds.append(threshold)
         thresholds_optimal.append(threshold_optimal)
+    
+    if save_path:
+        plt.plot([0, 1], [0, 1], 'k--')
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.0])
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.title(f'ROC Curve per class')
+        plt.legend(loc="lower right")
+        plt.savefig(save_path)
+        print(f"ROC Curve saved at : {save_path}")
+    plt.close()
     return aucs, thresholds, thresholds_optimal
 
 def optimal_thresh(fpr, tpr, thresholds, p=0):
@@ -219,7 +242,7 @@ def main():
     parser.add_argument('--dataset', default='acrobat', type=str, help='Dataset folder name')
     parser.add_argument('--num_classes', default=4, type=int, help='Number of output classes [4]')
     parser.add_argument('--lr', default=0.0001, type=float, help='Initial learning rate [0.0001]')
-    parser.add_argument('--num_epochs', default=10, type=int, help='Number of total training epochs [100]')
+    parser.add_argument('--num_epochs', default=50, type=int, help='Number of total training epochs [100]')
     parser.add_argument('--stop_epochs', default=10, type=int, help='Skip remaining epochs if training has not improved after N epochs [10]')
     parser.add_argument('--gpu_index', type=int, nargs='+', default=(0,), help='GPU ID(s) [0]')
     parser.add_argument('--weight_decay', default=1e-3, type=float, help='Weight decay [1e-3]')
@@ -230,8 +253,10 @@ def main():
     parser.add_argument('--non_linearity', default=1, type=float, help='Additional nonlinear operation [1]')
     parser.add_argument('--average', type=bool, default=False, help='Average the score of max-pooling and bag aggregating')
     parser.add_argument('--eval_scheme', default='5-fold-cv-standalone-test', type=str, help='Evaluation scheme [ 5-fold-cv | 5-fold-cv-standalone-test | 5-time-train+valid+test ]')
+    parser.add_argument('--checkpoint', default=None, type=str, help='Path to the checkpoint file')
 
     args = parser.parse_args()
+    random_seed(2024)
     print(args.eval_scheme)
 
     gpu_ids = tuple(args.gpu_index)
@@ -249,9 +274,11 @@ def main():
         b_classifier = mil.BClassifier(input_size=args.feats_size, output_class=args.num_classes, dropout_v=args.dropout_node, nonlinear=args.non_linearity).cuda()
         milnet = mil.MILNet(i_classifier, b_classifier).cuda()
         milnet.apply(lambda m: apply_sparse_init(m))
-        criterion = nn.BCEWithLogitsLoss()
+        criterion = nn.CrossEntropyLoss()
+        # criterion = nn.BCEWithLogitsLoss()
         optimizer = torch.optim.Adam(milnet.parameters(), lr=args.lr, betas=(0.5, 0.9), weight_decay=args.weight_decay)
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, args.num_epochs, 0.000005)
+        scheduler = torch.optim.lr_scheduler.CyclicLR(optimizer, base_lr=5e-6, max_lr=args.lr, step_size_up=10, step_size_down=40, cycle_momentum=False)
+        # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, args.num_epochs, 0.000005)
         return milnet, criterion, optimizer, scheduler
     
     current_path = os.path.dirname(os.path.abspath(__file__))
@@ -263,7 +290,7 @@ def main():
     generate_pt_files(args, pd.read_csv(bags_csv), type='train')
     
     if args.eval_scheme == '5-fold-cv':
-        train_bags_path = glob.glob('temp_train/*.pt')
+        train_bags_path = glob.glob(f'temp_train_{args.run_name}/*.pt')
         kf = KFold(n_splits=5, shuffle=True, random_state=2024)
         fold_results = []
 
@@ -311,7 +338,7 @@ def main():
 
 
     elif args.eval_scheme == '5-time-train+valid+test':
-        train_bags_path = glob.glob('temp_train/*.pt')
+        train_bags_path = glob.glob(f'temp_train_{args.run_name}/*.pt')
         fold_results = []
 
         save_path = os.path.join(current_path, 'weights', datetime.date.today().strftime("%Y%m%d"))
@@ -363,11 +390,11 @@ def main():
             print(f"Class {i}: Mean AUC = {mean_score:.4f}")
 
     if args.eval_scheme == '5-fold-cv-standalone-test':
-        train_bags_path = shuffle(glob.glob('temp_train/*.pt'))
+        train_bags_path = shuffle(glob.glob(f'temp_train_{args.run_name}/*.pt'))
         if args.dataset == 'acrobat':
             bags_csv = os.path.join(path.get_feature_dir(args.dataset, args.run_name, 'test'), args.dataset+'.csv') # '.../acrobat.csv'
             generate_pt_files(args, pd.read_csv(bags_csv), type='test')
-            test_bags_path = glob.glob('temp_test/*.pt')
+            test_bags_path = glob.glob(f'temp_test_{args.run_name}/*.pt')
         else: # split the training set into training and test set
             test_bags_path = train_bags_path[:int(args.split*len(train_bags_path))]
             train_bags_path = train_bags_path[int(args.split*len(train_bags_path)):]
@@ -389,11 +416,18 @@ def main():
             best_auc = 0
             counter = 0
             best_model = []
+            if args.checkpoint is not None:
+                test_path = path.get_test_path(run_name=args.checkpoint, make=True)
+                chkpt_path = os.path.join(test_path, f'mil_weights_fold_{fold}.pth')
+                milnet.load_state_dict(torch.load(chkpt_path, weights_only=False))
+                best_model = [copy.deepcopy(milnet.cpu()), []]
+                milnet.cuda()
 
             for epoch in range(1, args.num_epochs+1):
                 counter += 1
                 train_loss_bag = train(args, train_path, milnet, criterion, optimizer) # iterate all bags
-                test_loss_bag, avg_score, aucs, thresholds_optimal = test(args, val_path, milnet, criterion)
+                roc_save_path = path.get_test_path(run_name=args.run_name) + f'/roc_curve_valid_{fold}.png'
+                test_loss_bag, avg_score, aucs, thresholds_optimal = test(args, val_path, milnet, criterion, save_path=roc_save_path)
                 
                 print_epoch_info(epoch, args, train_loss_bag, test_loss_bag, avg_score, aucs)
                 scheduler.step()
@@ -412,23 +446,41 @@ def main():
             fold_models.append(best_model)
 
         fold_predictions = []
-        for item in fold_models:
+        for i, item in enumerate(fold_models):
             best_model = item[0]
             optimal_thresh = item[1]
-            test_loss_bag, avg_score, aucs, thresholds_optimal, test_predictions, test_labels = test(args, test_bags_path, best_model.cuda(), criterion, thresholds=optimal_thresh, return_predictions=True)
+            roc_save_path = path.get_test_path(run_name=args.run_name) + f'/roc_curve_{i}.png'
+            test_loss_bag, avg_score, aucs, thresholds_optimal, test_predictions, test_labels = test(args, test_bags_path, best_model.cuda(), criterion, thresholds=optimal_thresh, return_predictions=True, save_path=roc_save_path)
+            print('\n\r Test loss: %.4f, average Acc: %.4f, \n\tAUC: ' % 
+                (test_loss_bag, avg_score) + '\t'.join('[class {}] {:.4f}'.format(*k) for k in enumerate(aucs))) 
             fold_predictions.append(test_predictions)
         predictions_stack = np.stack(fold_predictions, axis=0)
         mode_result = mode(predictions_stack, axis=0)
         combined_predictions = mode_result.mode
         combined_predictions = combined_predictions.squeeze()
 
-        if args.num_classes > 1:
+        if args.num_classes > 1: #! HERE : multi-class classification
             # Compute Hamming Loss
             hammingloss = hamming_loss(test_labels, combined_predictions)
             print("Hamming Loss:", hammingloss)
             # Compute Subset Accuracy
             subset_accuracy = accuracy_score(test_labels, combined_predictions)
             print("Subset Accuracy (Exact Match Ratio):", subset_accuracy)
+            import matplotlib.pyplot as plt
+
+            # Compute confusion matrix
+            print(test_labels, combined_predictions)
+            cm = confusion_matrix(test_labels, combined_predictions, labels=range(args.num_classes))
+            # Plot confusion matrix
+            plt.figure(figsize=(10, 7))
+            sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=range(args.num_classes), yticklabels=range(args.num_classes))
+            plt.xlabel('Predicted')
+            plt.ylabel('True')
+            plt.title('Confusion Matrix')
+            test_path = path.get_test_path(run_name=args.run_name, make=True)
+            plt.savefig(f"{test_path}/confusion_matrix.png")
+            plt.show()
+            print("Confusion Matrix saved at:", f"{test_path}/confusion_matrix.png")
         else:
             accuracy = accuracy_score(test_labels, combined_predictions)
             print("Accuracy:", accuracy)
@@ -446,6 +498,7 @@ def main():
             with open(f"{test_path}/mil_threshold_fold_{i}.json", "w") as file:
                 optimal_thresh = [float(i) for i in optimal_thresh]
                 json.dump(optimal_thresh, file)
+                
                 
 
 if __name__ == '__main__':
