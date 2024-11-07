@@ -2,7 +2,7 @@
 # dataset
 # *.png
 *.tif
-*.jpeg
+# *.jpeg
 *.pth
 *.pt
 *.zip
