@@ -6,7 +6,7 @@ import tifffile as tiff
 from matplotlib import pyplot as plt
 import numpy as np
 from utils import path
-from utils.path import get_project_root, get_labeled_WSI_files, get_patch_dir, get_raw_patch_file
+# from utils.path import get_project_root, get_labeled_WSI_files, get_patch_dir, get_raw_patch_file
 
 def image_path():
     return os.path.dirname(os.path.realpath(__file__)) + '/images'
@@ -34,11 +34,14 @@ def attention_map_path(slide_name, pos=None, cropped=True) -> list[str] | str:
     return path
 
 def patch_path(slide_name, pos=None) -> list[str] | str:
+    patient, imgtype, type = slide_name.split('_')
     if pos is None :
-        path = glob.glob(f'{get_patch_dir("acrobat", f"pyramid_{type}")}/*/{slide_name}/*_*.jpeg')
+        path = glob.glob(f"{image_path()}/patches/{patient}_{type}/*_*.jpeg")
+        # path = glob.glob(f'{get_patch_dir("acrobat", f"pyramid_{type}")}/*/{slide_name}/*_*.jpeg')
     else:
-        path = f'{get_patch_dir("acrobat", f"pyramid_{type}")}/*/{slide_name}/{pos[0]}_{pos[1]}.jpeg'
-        assert os.path.exists(path), f"[{slide_name}] Patch {pos} not found."
+        path = f"{image_path()}/patches/{patient}_{type}/{pos[0]}_{pos[1]}.jpeg"
+        # path = f'{get_patch_dir("acrobat", f"pyramid_{type}")}/*/{slide_name}/{pos[0]}_{pos[1]}.jpeg'
+        # assert os.path.exists(path), f"[{slide_name}] Patch {pos} not found."
     return path
 
 def get_available_patches(slide_name):

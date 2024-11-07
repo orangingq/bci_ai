@@ -44,6 +44,7 @@ def get_WSI():
     WSI_path = glob.glob(WSI_path)[0]
 
     if len(glob.glob(colormap_path)) != 1:
+        print(f"DRAWING COLORMAP: {colormap_path}")
         colormap_path = util.draw_wsi_colormap(slide_name)
 
     detected_label = int(WSI_path.split('_')[-1].split('.')[0].replace('neg', '0'))
@@ -80,7 +81,8 @@ def get_patch():
         "attention": None,
         "label": None,
     }
-    patch_file = get_raw_patch_file(slide_name, label=class_name[num_class], pos=pos)
+    patch_file = util.patch_path(slide_name, pos)
+    # patch_file = get_raw_patch_file(slide_name, label=class_name[num_class], pos=pos)
     if patch_file is None:
         abort(404, description=f"Patch {pos} not found.")
     
