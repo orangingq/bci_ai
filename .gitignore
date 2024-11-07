@@ -43,4 +43,8 @@ abmil.py
 !datasets/acrobat/meta_data/acrobat_label.csv
 # !test/resnet18_imgnet/*
 !simclr/runs/resnet18_finetune*
+<<<<<<< HEAD
 !app/*
+=======
+!patch classification/attention_map*.ipynb
+>>>>>>> cd549d6b8b765fee7bb8999649459ee3e1318b2a
