@@ -44,7 +44,8 @@ abmil.py
 # !test/resnet18_imgnet/*
 !simclr/runs/resnet18_finetune*
 !app/*
-!app/attention_map/*/*.png
-!app/colormap/*.png
+!app/images/attention_map/*/*.png
+!app/images/colormap/*.png
+!app/images/patches/*/*.png
 !segment_103_train/*.png
 !wsi/*.png
