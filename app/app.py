@@ -43,7 +43,8 @@ def get_WSI():
             return result.stderr, 500
     WSI_path = glob.glob(WSI_path)[0]
 
-    colormap_path = util.draw_wsi_colormap(slide_name)
+    if len(glob.glob(colormap_path)) != 1:
+        colormap_path = util.draw_wsi_colormap(slide_name)
 
     detected_label = int(WSI_path.split('_')[-1].split('.')[0].replace('neg', '0'))
     true_label = num_class
