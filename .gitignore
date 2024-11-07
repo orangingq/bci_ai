@@ -43,3 +43,4 @@ abmil.py
 !datasets/acrobat/meta_data/acrobat_label.csv
 # !test/resnet18_imgnet/*
 !simclr/runs/resnet18_finetune*
+!app/*

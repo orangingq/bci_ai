@@ -3,66 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Python Image Generator</title>
+    <title>Demo</title>
     <script>
-        function createSlider(overlayImg) {
-            const slider = document.createElement('input');
-            slider.id = 'slider';
-            slider.type = 'range';
-            slider.min = '0';
-            slider.max = '1';
-            slider.step = '0.01';
-            slider.value = '0.5';
-            slider.style.display = 'block';
-            slider.style.marginTop = '20px';
-            slider.oninput = function() {
-                overlayImg.style.opacity = slider.value;
-            };
-            slider.style.position = 'relative';
-            return slider;
-        }
-        function setColorMarks() {
-            const legend = document.createElement('div');
-            legend.style.position = 'relative';
-            legend.style.marginTop = '20px';
-
-            const redMark = document.createElement('div');
-            const greenMark = document.createElement('div');
-            const blueMark = document.createElement('div');
-            const array = [redMark, greenMark, blueMark];
-            const colors = ['red', 'green', 'blue'];
-            const text = ['1', '2', '3'];
-            const ids = ['red-mark', 'green-mark', 'blue-mark'];
-            array.forEach(element => {
-                element.id = ids[array.indexOf(element)];
-                element.textContent = text[array.indexOf(element)];
-                element.style.display = 'inline-block';
-                element.style.width = '20px';
-                element.style.height = '20px';
-                element.style.marginRight = '10px';
-                element.style.color = 'white';
-                element.style.backgroundColor = colors[array.indexOf(element)];
-                element.style.textAlign = 'center'; 
-                element.style.lineHeight = '20px';
-                legend.appendChild(element);
-            });
-            return legend;
-        }
-        function eraseOutputs() {
-            const img = document.getElementById('output-image');
-            const overlayImg = document.getElementById('overlay-image');
-            const slider = document.getElementById('slider');
-            const text = document.getElementById('output-text');
-            const redmark = document.getElementById('red-mark');
-            const greenmark = document.getElementById('green-mark');
-            const bluemark = document.getElementById('blue-mark');
-            if (img) { img.remove();}
-            if (overlayImg) {overlayImg.remove();}
-            if (slider) {slider.remove();}
-            if (redmark) {redmark.remove();}
-            if (greenmark) {greenmark.remove();}
-            if (bluemark) {bluemark.remove();}
-            text.textContent = '';
+        function visibility_control(name, visibility='hidden') {
+            wrapper = document.getElementsByClassName(name);
+            for (let i = 0; i < wrapper.length; i++) {
+                wrapper[i].style.visibility = visibility;
+            }
         }
         function getPatientNum() {
             if (!document.getElementById('patient').value) {
@@ -71,22 +18,18 @@
             }
             return document.getElementById('patient').value;
         }
-        function generateImage() {
-            const patient = getPatientNum();
-            eraseOutputs();
+        function generateImage(num_class) {
+            visibility_control('wsi', 'hidden');
+            visibility_control('patch', 'hidden');
+            visibility_control('patch-button', 'hidden');
             const text = document.getElementById('output-text');
             text.textContent = 'Please wait...';
-            if (!patient) {
-                alert('Please enter a valid patient number');
-                return;
-            }
-            const slideName = patient + '_HER2_test';
-            fetch('/run_python', {
+            fetch('/get_wsi', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ slide_name: slideName })
+                body: JSON.stringify({ 'class': num_class })
             })
             .then(response => {
                 if (!response.ok) {
@@ -100,55 +43,173 @@
                 }
                 return response.json();  // Parse JSON if response is OK
             })
-            
             .then(data => {
                 // Display the image
                 const img = document.getElementById('output-image');
-                if (img) {
-                    img.src = `data:image/jpeg;base64,${data.image}`;
-                } else {
-                    const img = document.createElement('img');
-                    img.src = `data:image/jpeg;base64,${data.image}`;
-                    img.id = 'output-image';
-                    img.style.width = '100%';
-                    img.style.position = 'absolute';
+                const overlayImg = document.getElementById('overlay-image');
+                img.src = `data:image/jpeg;base64,${data.image}`;
+                overlayImg.src = `data:image/jpeg;base64,${data.colormap}`; // Replace with the actual path to image2
+                // call click_patch function when overlayImg is clicked
+                overlayImg.addEventListener('click', event => click_patch(event, num_class));
+                const slider = document.getElementById('slider');
+                slider.oninput = function() {
+                    overlayImg.style.opacity = this.value;
+                };
+                visibility_control('wsi', 'visible');
 
-                    const overlayImg = document.createElement('img');
-                    overlayImg.src = `data:image/jpeg;base64,${data.colormap}`; // Replace with the actual path to image2
-                    overlayImg.id = 'overlay-image';
-                    overlayImg.style.width = '100%';
-                    overlayImg.style.position = 'absolute';
-                    overlayImg.style.opacity = '0.5'; // Initial transparency
-                    
-                    const container = document.createElement('div');
-                    const legend = setColorMarks();
-                    container.appendChild(legend);
-                    const slider = createSlider(overlayImg);
-                    container.appendChild(slider);
-                    container.appendChild(img);
-                    container.appendChild(overlayImg);
-                    document.body.appendChild(container);
-
-                }
                 // Display the text data
                 const text = document.getElementById('output-text');
-                text.textContent = "Detected: " + data.detected + "     True Label: " + data.true;
+                text.textContent = "True Label: " + data.true + "     Detected: " + data.detected;
                 console.log('Success:', data);
             })
             .catch(error => {
-                console.error('Error:', error);
+                visibility_control('wsi', 'hidden');
+                visibility_control('patch', 'hidden');
+                visibility_control('patch-button', 'hidden');
+            });
+        }
+
+        function click_patch(event, num_class=None) {
+            console.log('Click event:', event);
+            const overlayImg = document.getElementById('overlay-image');
+            const rect = overlayImg.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            const relativeX = x / rect.width;
+            const relativeY = y / rect.height;
+
+            fetch('/get_patch', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 'x': relativeX, 'y': relativeY, 'class': num_class })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // Parse the error JSON if the response is not OK
+                    return response.json().then(errorData => {
+                        console.log('Error:', errorData.error);
+                        throw new Error(errorData.error || "patch not found");
+                    });
+                }
+                return response.json();  // Parse JSON if response is OK
+            })
+            .then(data => {
+                console.log('Position sent successfully:', data);
+                // Display the image
+                const img = document.getElementById('patch-image');
+                const attentionImg = document.getElementById('attention-image');
+                const segmentedImg = document.getElementById('segmented-image');
+                const attentionButton = document.getElementById('attention-button');
+                const segmentedButton = document.getElementById('segmented-button');
+
+                img.src = `data:image/jpeg;base64,${data.patch}`;
+                if (data.attention) {
+                    attentionImg.src = `data:image/jpeg;base64,${data.attention}`;
+                    attentionImg.style.opacity = '0.5'; // Initial transparency
+                    attentionButton.style.visibility = 'visible';
+                    attentionButton.onclick = function() {
+                        attentionImg.style.visibility = attentionImg.style.visibility === 'hidden' ? 'visible' : 'hidden';
+                    };
+                }
+                else {
+                    attentionButton.style.visibility = 'hidden';
+                }
+                if (data.segmented) {
+                    segmentedImg.src = `data:image/jpeg;base64,${data.segmented}`;
+                    segmentedImg.style.opacity = '0.5'; // Initial transparency
+                    segmentedButton.style.visibility = 'visible';
+                    segmentedButton.onclick = function() {
+                        segmentedImg.style.visibility = segmentedImg.style.visibility === 'hidden' ? 'visible' : 'hidden';
+                    };
+                }
+                else {
+                    segmentedButton.style.visibility = 'hidden';
+                }
+                visibility_control('patch', 'visible');
+            })
+            .catch(error => {
+                visibility_control('patch', 'hidden');
+                visibility_control('patch-button', 'hidden');
             });
         }
     </script>
+    <style>
+        .wsi {
+            visibility: hidden;
+        }
+        .patch {
+            visibility: hidden;
+        }
+        .image-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            /* width: fit-content; */
+        }
+        .color-mark {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            color: white;
+            text-align: center;
+            line-height: 20px;
+        }
+        .patch-button {
+            color: black;
+            float: right;
+        }
+        .overlay-group {
+            position: relative;
+            display: inline-block;
+            margin: 10px;
+            width: 100%;
+        }
+        .overlay-group img {
+            position: absolute;
+            width: 100%; /* Make each image cover the group */
+            height: auto;
+            object-fit: cover;
+        }
+    </style>
 </head>
 <body>
-    <h1>Generate Image</h1>
-    <p>Enter the patient number to generate an image.</p>
-    <input type="text" id="patient" placeholder="21">
-    <button onclick="generateImage()">Generate</button>
+    <h1>17q12 Breast Cancer IHC Classification Demo</h1>
+    <!-- <p>Enter the patient number to generate an image.</p> -->
+    <!-- <input type="text" id="patient" placeholder="21"> -->
+    <button onclick="generateImage(0)" id="class_0">Class 0</button>
+    <button onclick="generateImage(1)" id="class_1">Class 1</button>
+    <button onclick="generateImage(2)" id="class_2">Class 2</button>
+    <button onclick="generateImage(3)" id="class_3">Class 3</button>
     <div>
-        <!-- <img id="output-image" src="" alt="Generated Image" style="margin-top: 20px;"> -->
-        <p id="output-text" style="margin-top: 20px;"></p>
+        <p id="output-text" style="margin-top: 20px;"> </p>
+        <div id="content" style="width: 100%; padding: 2px;">
+            <div style="position: relative; display: flex; margin-top: 20px; margin-left: 10px;">
+                <div id="blue-mark" class="color-mark wsi" style="background-color: #b2b4b8; font-size:x-small;">Tissue</div>
+                <div id="blue-mark" class="color-mark wsi" style="background-color: #afc1f8;">0</div>
+                <div id="red-mark" class="color-mark wsi" style="background-color: #5c85ff;">1</div>
+                <div id="green-mark" class="color-mark wsi" style="background-color: #0e39e1;">2</div>
+                <div id="blue-mark" class="color-mark wsi" style="background-color: #06249d;">3</div>
+                <input id="slider" class="wsi" type="range" min="0" max="1" step="0.01" value="0.5" style="display: block; ">
+                <!-- <input id="patch-slider" class="patch" type="range" min="0" max="1" step="0.01" value="0.5" style="display: block; margin-left:40%"> -->
+                <button id="segmented-button" class="patch-button color-mark" style="visibility: hidden; margin-left:40%;">S</button>
+                <button id="attention-button" class="patch-button color-mark" style="visibility: hidden;">A</button>
+            </div>
+            <div class="image-wrapper">
+                <div class="overlay-group wsi" style="width: 60%">
+                    <img id="output-image" >
+                    <img id="overlay-image" style="opacity: 0.5;">
+                </div>
+                <div class="overlay-group patch" style="width: 40%; border-width: 1px;">
+                    <img id="patch-image" style="visibility: inherit;">
+                    <img id="attention-image" style="visibility: inherit; opacity: 0.5;">
+                    <img id="segmented-image" style="visibility: inherit;">
+                </div>
+            </div>
+        </div>
     </div>
 </body>
 </html>

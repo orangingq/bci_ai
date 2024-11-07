@@ -14,7 +14,7 @@ def get_data_dir(data:str='acrobat') -> str:
 
 
 def get_raw_patch_file(slide_name:str, label:str=None, slide_format:str='jpeg', pos:list[int]=[0, 0], mag:str='low') -> str:
-    '''get raw (unlabeled) WSI files'''
+    '''get raw (unlabeled) WSI files. if the patch is not found, return None'''
     assert mag in ['low', 'high'], f'Invalid mag {mag}'
     patient, imgtype, type = slide_name.split('_')
     col, row = pos
@@ -25,7 +25,9 @@ def get_raw_patch_file(slide_name:str, label:str=None, slide_format:str='jpeg', 
     else:
         file_path = f'{get_patch_dir("acrobat", f"pyramid_{type}")}/{label}/{slide_name}/{col//4}_{row//4}/{col}_{row}.{slide_format}'
     file = glob.glob(file_path) 
-    assert len(file) == 1, f'retrieved file : {file}'
+    if len(file) == 0:
+        print(f'No patch found in {file_path}')
+        return None
     return file[0]
 
 

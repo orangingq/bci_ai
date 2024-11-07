@@ -41,8 +41,9 @@ def draw_patch(slide_name, ab, pos):
     return
 
 
-def draw_wsi(slide_name, ins_prediction, pos_arr):
+def draw_wsi(slide_name, ins_prediction, bag_prediction, pos_arr, label):
     class_name = ['1', '2', '3', 'neg']
+    predicted = class_name[bag_prediction]
     
     # Read the WSI image 
     wsi_img_path = path.get_raw_WSI_file(slide_name)
@@ -54,7 +55,7 @@ def draw_wsi(slide_name, ins_prediction, pos_arr):
     
     # Save the WSI image
     plt.axis('off')
-    image_path = path.get_test_path('output') + f'/{slide_name}.png'
+    image_path = path.get_test_path('output') + f'/{slide_name}_{predicted}_{label}.png'
     plt.imsave(image_path, wsi_img.astype(np.uint8))
     print(f"WSI Image saved at : {image_path}")
     
@@ -63,7 +64,7 @@ def draw_wsi(slide_name, ins_prediction, pos_arr):
     color_map = np.full(color_map_shape, 255, dtype=np.uint8)
     colors = [np.array([255, 0, 0]), np.array([0, 255, 0]), np.array([0, 0, 255]), np.array([255, 255, 255])]
     for pred, pos in zip(ins_prediction, pos_arr):
-        color_map[pos[1]-1, pos[0]-1] = colors[pred]
+        color_map[pos[1], pos[0]] = colors[pred]
         
     # Resize the color map to the WSI image size
     color_map = transform.resize(color_map, (wsi_img.shape[0],wsi_img.shape[1]), order=0)
@@ -77,7 +78,7 @@ def draw_wsi(slide_name, ins_prediction, pos_arr):
     ax.axis('off')
     
     # Save the color map image
-    image_path = path.get_test_path('output') + f'/{slide_name}_colormap.png'
+    image_path = path.get_test_path('output') + f'/{slide_name}_colormap_{predicted}.png'
     plt.imsave(image_path, color_map.astype(np.uint8))
     plt.close(fig)
     print(f"Color map image saved at : {image_path}")
@@ -183,7 +184,7 @@ def main():
     ab = ab.reshape(ab.size(0), int(math.sqrt(ab.size(1))), int(math.sqrt(ab.size(1)))).cpu().numpy()
     assert len(ab) == len(pos_arr), f"ab.shape = {ab.shape} != len(pos_arr) = {len(pos_arr)}"
     # draw_patch(args.slide_name, ab[0], pos_arr[0])
-    draw_wsi(args.slide_name, ins_prediction, bag_prediction, pos_arr)
+    draw_wsi(args.slide_name, ins_prediction, bag_prediction, pos_arr, label)
 
     image_path = path.get_test_path('output') + f'/{args.slide_name}.png'
 
