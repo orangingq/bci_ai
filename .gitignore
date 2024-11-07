@@ -1,6 +1,6 @@
 
 # dataset
-*.png
+# *.png
 *.tif
 *.jpeg
 *.pth
