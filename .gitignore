@@ -47,5 +47,5 @@ abmil.py
 !app/images/attention_map/*/*.png
 !app/images/colormap/*.png
 !app/images/patches/*/*.png
-!segment_103_train/*.png
+!segment_103_train/*.jpeg
 !wsi/*.png
