@@ -57,11 +57,14 @@ def draw_wsi_colormap(slide_name):
     class_name = ['1', '2', '3', 'neg']
     
     # Read the WSI image 
-    wsi_img_path = path.get_raw_WSI_file(slide_name)
-    with tiff.TiffFile(wsi_img_path) as tif:
+    # wsi_img_path = path.get_raw_WSI_file(slide_name)
+    wsi_img_path = glob.glob(wsi_path(slide_name))[0]
+    # with tiff.TiffFile(wsi_img_path) as image_file:
+    with open(wsi_img_path, "rb") as image_file:
         resolution = 3
         tile_size = (224 * 4) // (1 << resolution)
-        wsi_img = tif.pages[resolution].asarray()
+        # wsi_img = image_file.pages[resolution].asarray()
+        wsi_img = plt.imread(image_file)
         img_shape = wsi_img.shape
     
     # Create a color map for the predicted results  

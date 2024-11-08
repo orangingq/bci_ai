@@ -100,9 +100,9 @@
                 // Display the image
                 const img = document.getElementById('patch-image');
                 const attentionImg = document.getElementById('attention-image');
-                const segmentedImg = document.getElementById('segmented-image');
+                // const segmentedImg = document.getElementById('segmented-image');
                 const attentionButton = document.getElementById('attention-button');
-                const segmentedButton = document.getElementById('segmented-button');
+                // const segmentedButton = document.getElementById('segmented-button');
 
                 img.src = `data:image/jpeg;base64,${data.patch}`;
                 if (data.attention) {
@@ -116,17 +116,18 @@
                 else {
                     attentionButton.style.visibility = 'hidden';
                 }
-                if (data.segmented) {
-                    segmentedImg.src = `data:image/jpeg;base64,${data.segmented}`;
-                    segmentedImg.style.opacity = '0.5'; // Initial transparency
-                    segmentedButton.style.visibility = 'visible';
-                    segmentedButton.onclick = function() {
-                        segmentedImg.style.visibility = segmentedImg.style.visibility === 'hidden' ? 'visible' : 'hidden';
-                    };
-                }
-                else {
-                    segmentedButton.style.visibility = 'hidden';
-                }
+                // if (data.segmented) {
+                //     segmentedImg.src = `data:image/jpeg;base64,${data.segmented}`;
+                //     segmentedImg.style.opacity = '0.5'; // Initial transparency
+                //     segmentedButton.style.visibility = 'visible';
+                //     segmentedButton.onclick = function() {
+                //         segmentedImg.style.visibility = segmentedImg.style.visibility === 'hidden' ? 'visible' : 'hidden';
+                //     };
+                // }
+                // else {
+                //     visibility_control('seg', 'hidden');
+                //     // segmentedButton.style.visibility = 'hidden';
+                // }
                 visibility_control('patch', 'visible');
             })
             .catch(error => {
@@ -195,8 +196,8 @@
                 <div id="blue-mark" class="color-mark wsi" style="background-color: #06249d;">3</div>
                 <input id="slider" class="wsi" type="range" min="0" max="1" step="0.01" value="0.5" style="display: block; ">
                 <!-- <input id="patch-slider" class="patch" type="range" min="0" max="1" step="0.01" value="0.5" style="display: block; margin-left:40%"> -->
-                <button id="segmented-button" class="patch-button color-mark" style="visibility: hidden; margin-left:40%;">S</button>
-                <button id="attention-button" class="patch-button color-mark" style="visibility: hidden;">A</button>
+                <!-- <button id="segmented-button" class="patch-button seg color-mark" style="visibility: hidden; margin-left:40%;">S</button> -->
+                <button id="attention-button" class="patch-button color-mark" style="visibility: hidden; margin-left:40%;">A</button>
             </div>
             <div class="image-wrapper">
                 <div class="overlay-group wsi" style="width: 60%">
@@ -206,7 +207,7 @@
                 <div class="overlay-group patch" style="width: 40%; border-width: 1px;">
                     <img id="patch-image" style="visibility: inherit;">
                     <img id="attention-image" style="visibility: inherit; opacity: 0.5;">
-                    <img id="segmented-image" style="visibility: inherit;">
+                    <!-- <img id="segmented-image" class="seg" style="visibility: inherit;"> -->
                 </div>
             </div>
         </div>
