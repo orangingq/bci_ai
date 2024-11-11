@@ -1,8 +1,6 @@
 
 # dataset
-# *.png
 *.tif
-# *.jpeg
 *.pth
 *.pt
 *.zip
@@ -14,9 +12,7 @@
 # cache
 .vscode
 __pycache__
-logs/result
-logs/result2
-logs/result3
+logs
 
 
 # intermediate files
