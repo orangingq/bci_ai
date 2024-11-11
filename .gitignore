@@ -26,9 +26,8 @@ WSI_temp_files/
 simclr/runs/resnet50*
 simclr/runs/resnet18_scratch*
 simclr/all_patches.csv
-# test/resnet50*
-# test/resnet18_scratch
-# test/resnet18_finetune
+test/resnet50*
+test/resnet18*
 test/output
 temp_*
 weights/
@@ -41,7 +40,8 @@ abmil.py
 # Exclude the following files
 !thumbnails/framework.png
 !datasets/acrobat/meta_data/acrobat_label.csv
-# !test/resnet18_imgnet/*
+!test/resnet18_finetune
+!test/resnet50_imgnet
 !simclr/runs/resnet18_finetune*
 !app/*
 !app/images/attention_map/*/*.png

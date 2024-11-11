@@ -1,19 +1,17 @@
 import base64
 import glob
 import math
-from flask import Flask, abort, jsonify, render_template, request, send_file
+from flask import Flask, abort, jsonify, render_template, request
 import subprocess
 import os
 from app import utility as util
-# from app.utility import draw_wsi_colormap, image_path, wsi_colormap_path, wsi_path
-from utils.path import get_project_root, get_labeled_WSI_files, get_patch_dir, get_raw_patch_file
+from utils.path import get_project_root
 import numpy as np
 from PIL import Image
 
 app = Flask(__name__)
 REPRESENTATIVE_SLIDES = {0 : "92_HER2_train", 1 : "0_HER2_train", 2 : "122_HER2_train", 3 : "103_HER2_train"}
 SLIDES_SIZE = {0: [46, 24], 1:[52, 30], 2: [52, 20], 3:[46, 25]}
-# SLIDES_SIZE = {0: [46, 24], 1:[52, 30], 2: [47, 17], 3:[46, 25]}
 
 @app.route('/')
 def index():
@@ -26,12 +24,6 @@ def get_WSI():
     num_class = request.get_json().get('class')
     slide_name = REPRESENTATIVE_SLIDES[num_class]
 
-    # Check if slide exists
-    # available_slides = get_labeled_WSI_files(type='train') + get_labeled_WSI_files(type='val') + get_labeled_WSI_files(type='test')
-    # available_slides = [slide.split('/')[-1].split('.')[0] for slide in available_slides]
-    # if slide_name not in available_slides:
-    #     abort(404, description=f"Slide {slide_name} not found.") # Available slides: {available_slides}
-
     WSI_path = util.wsi_path(slide_name)
     colormap_path = util.wsi_colormap_path(slide_name)
     
@@ -43,26 +35,17 @@ def get_WSI():
             return result.stderr, 500
     WSI_path = glob.glob(WSI_path)[0]
 
-    # if len(glob.glob(colormap_path)) != 1:
-    print(f"DRAWING COLORMAP: {colormap_path}")
-    colormap_path = util.draw_wsi_colormap(slide_name)
+    if len(glob.glob(colormap_path)) != 1:
+        print(f"DRAWING COLORMAP: {colormap_path}")
+        colormap_path = util.draw_wsi_colormap(slide_name)
 
     detected_label = int(WSI_path.split('_')[-1].split('.')[0].replace('neg', '0'))
     true_label = num_class
     # data payload
     with open(WSI_path, "rb") as image_file:
         encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
-    #     #TODO
-    # with open(f"{slide_name}_encoded_wsi.txt", "r") as encoded_file:
-    #     encoded_image = encoded_file.read()
-    # with open(f"{slide_name}_encoded_corlormap.txt", "r") as encoded_file:
-    #     encoded_colormap = encoded_file.read()
-    
-    
     with open(colormap_path, "rb") as image_file:
         encoded_colormap = base64.b64encode(image_file.read()).decode('utf-8')
-    # with open(f"{slide_name}_encoded_corlormap.txt", "w") as encoded_file:
-    #     encoded_file.write(encoded_colormap)
         
     message = {"detected": detected_label, 
                 "true": true_label, 
@@ -81,6 +64,7 @@ def get_patch():
     print(f"clicked: x {x} , y {y}")
     pos = SLIDES_SIZE[num_class]
     pos = [math.ceil(x*pos[0])-1, math.ceil(y*pos[1])-1]
+
     # 26, 10 / 41, 3 => 28, 12 / 47, 4
     if slide_name == '122_HER2_train':
         xa, xb = 1.2667, -4.9333
@@ -88,24 +72,20 @@ def get_patch():
         pos[0] = round(pos[0]*xa + xb)
         pos[1] = round(pos[1]*ya + yb)
     print(f"pos: col {pos[0]} , row {pos[1]} of ps {SLIDES_SIZE[num_class]}")
-    patient, imgtype, type = slide_name.split('_')
     patch_dict = {
         "slide": slide_name,
         "pos": pos,
         "patch": None,
-        # "segmented": None,
         "attention": None,
         "label": None,
     }
     patch_file = util.patch_path(slide_name, pos)
-    # patch_file = get_raw_patch_file(slide_name, label=class_name[num_class], pos=pos)
     if patch_file is None or not os.path.exists(patch_file):
         abort(404, description=f"Patch {pos} not found.")
     
     with open(patch_file, "rb") as image_file:
             patch_dict['patch'] = base64.b64encode(image_file.read()).decode('utf-8')
         
-    # segmented = f"{util.image_path()}/segment_{patient}_{type}/{pos[0]}_{pos[1]}.png"
     attention = util.attention_map_path(slide_name, pos)
     if attention is not None:
         # data payload
@@ -114,11 +94,6 @@ def get_patch():
         patch_dict['label'] = attention.split('_')[-1].split('.')[0]
     else:
         print(f"Attention map {pos} not found.")
-    # if slide_name == '103_HER2_train' and os.path.exists(segmented):
-    #     with open(segmented, "rb") as image_file:
-    #         patch_dict['segmented'] = base64.b64encode(image_file.read()).decode('utf-8')
-    # else:
-    #     print(f"Segmented image {segmented} not found.")
     return patch_dict
 
 
